@@ -1,7 +1,7 @@
 import hashlib
+import json
 
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.domain.common.enums import OpportunityState
@@ -44,24 +44,25 @@ class OpportunityIngestionService:
         payload: dict,
         normalized: OpportunityNormalized,
     ) -> Opportunity:
-        payload_hash = hashlib.sha256(str(payload).encode()).hexdigest()
-        snapshot = OpportunityIngestionSnapshot(
-            source_name=source_name,
-            source_record_id=source_record_id,
-            payload_hash=payload_hash,
-            payload=payload,
-        )
-        self.db.add(snapshot)
-        try:
-            self.db.flush()
-        except IntegrityError:
-            self.db.rollback()
-            existing = self.db.scalar(
-                select(Opportunity).where(Opportunity.external_id == normalized.external_id)
+        canonical_payload = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        payload_hash = hashlib.sha256(canonical_payload.encode()).hexdigest()
+
+        existing_snapshot = self.db.scalar(
+            select(OpportunityIngestionSnapshot.id).where(
+                OpportunityIngestionSnapshot.source_name == source_name,
+                OpportunityIngestionSnapshot.source_record_id == source_record_id,
+                OpportunityIngestionSnapshot.payload_hash == payload_hash,
             )
-            if existing is None:
-                raise
-            return existing
+        )
+        if existing_snapshot is None:
+            snapshot = OpportunityIngestionSnapshot(
+                source_name=source_name,
+                source_record_id=source_record_id,
+                payload_hash=payload_hash,
+                payload=payload,
+            )
+            self.db.add(snapshot)
+            self.db.flush()
 
         opportunity = self.db.scalar(
             select(Opportunity).where(Opportunity.external_id == normalized.external_id)
