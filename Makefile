@@ -20,3 +20,6 @@ migrate:
 
 makemigration:
 	alembic revision --autogenerate -m "$(m)"
+
+seed-dev:
+	$(PYTHON) -m app.scripts.seed_dev_data

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Enum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Enum, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
@@ -49,9 +49,25 @@ class OpportunityVersion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     eligibility_notes: Mapped[list[str]] = mapped_column(JSONType)
     expected_outcomes: Mapped[list[str]] = mapped_column(JSONType)
     raw_payload: Mapped[dict] = mapped_column(JSONType)
+    provenance: Mapped[dict] = mapped_column(JSONType, default=dict)
+    uncertainty_notes: Mapped[list[str]] = mapped_column(JSONType, default=list)
     is_latest: Mapped[bool] = mapped_column(Boolean, default=True)
 
     opportunity: Mapped[Opportunity] = relationship(back_populates="versions")
+
+
+class OpportunityIngestionSnapshot(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "opportunity_ingestion_snapshots"
+    __table_args__ = (
+        UniqueConstraint(
+            "source_name", "source_record_id", "payload_hash", name="uq_ingestion_snapshot"
+        ),
+    )
+
+    source_name: Mapped[str] = mapped_column(String(100), index=True)
+    source_record_id: Mapped[str] = mapped_column(String(255), index=True)
+    payload_hash: Mapped[str] = mapped_column(String(128), index=True)
+    payload: Mapped[dict] = mapped_column(JSONType)
 
 
 class MatchResult(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -65,5 +81,7 @@ class MatchResult(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     scores: Mapped[dict] = mapped_column(JSONType)
     total_score: Mapped[float] = mapped_column(Float)
     explanations: Mapped[list[str]] = mapped_column(JSONType)
+    rationale: Mapped[dict] = mapped_column(JSONType, default=dict)
+    recommendation: Mapped[str] = mapped_column(String(64), default="reject")
     recommended_role: Mapped[str | None] = mapped_column(String(64), nullable=True)
     red_flags: Mapped[list[str]] = mapped_column(JSONType)
