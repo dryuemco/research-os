@@ -15,7 +15,6 @@ api_router.include_router(
     prefix="/proposal-factory",
     tags=["proposal_factory"],
 )
-
 api_router.include_router(
     decomposition_router,
     prefix="/decomposition",
