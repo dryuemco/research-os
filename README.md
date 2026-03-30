@@ -1,25 +1,20 @@
 # Research Proposal OS Starter Repository
 
-This repository contains a production-credible backend foundation for a Research and Proposal Operating System (RPOS), now extended with the first operational opportunity workflow slice.
+This repository contains a production-credible backend foundation for a Research and Proposal Operating System (RPOS), including:
 
-## Included in this iteration
-- FastAPI application skeleton with dependency-injected services
-- PostgreSQL-oriented SQLAlchemy setup and Alembic migrations
-- audited opportunity ingestion pipeline with adapter abstraction
-- normalized opportunity/version persistence with source snapshots and hash-based change detection
-- matching engine v1 with hard filters, weighted scoring, rationale, red flags, recommendation persistence
-- opportunity approval/rejection/monitor/ignore state machine with transition validation and audit logging
-- thin API routes for ingest -> list -> match -> decision flows
-- health endpoint and smoke tests
+- opportunity ingestion, normalization, matching, and approval flows
+- proposal factory workspace foundation with concept-note and review-loop orchestration skeleton
+- provider-agnostic model routing decisions and quota policy evaluation scaffolding
+- auditable workflow transitions and typed contracts for orchestration inputs/outputs
 
 ## Repository layout
 - `app/api` - API routes and router wiring
 - `app/core` - config and logging
-- `app/db` - base metadata, model import registry, and sessions
-- `app/domain` - domain-specific ORM models and shared enums/mixins
+- `app/db` - metadata, model registry, and sessions
+- `app/domain` - SQLAlchemy domain models and enums
 - `app/providers` - provider abstraction contracts and registry
 - `app/schemas` - typed contracts for API and workflow payloads
-- `app/services` - business services and policy loaders
+- `app/services` - business logic services and policy loaders
 - `app/scripts` - local development scripts
 - `alembic` - migration environment and revisions
 - `tests` - unit and API smoke tests
@@ -34,6 +29,15 @@ This repository contains a production-credible backend foundation for a Research
 - `POST /opportunities/{opportunity_id}/decision`
 - `POST /matches/run`
 - `GET /matches`
+- `POST /proposal-factory/workspaces`
+- `GET /proposal-factory/workspaces/{proposal_id}`
+- `POST /proposal-factory/concept-note`
+- `POST /proposal-factory/sections/draft`
+- `POST /proposal-factory/review-rounds`
+- `POST /proposal-factory/review-feedback`
+- `GET /proposal-factory/workspaces/{proposal_id}/convergence`
+- `POST /proposal-factory/routing-preview`
+- `POST /proposal-factory/quota-preview`
 
 ## Quick start
 1. Copy `.env.example` values into a local `.env` if you want local overrides.
@@ -44,7 +48,9 @@ This repository contains a production-credible backend foundation for a Research
 
 ## Important guardrails
 - Human approval remains mandatory before proposal drafting or submission-related work.
+- Human approval is required for high-risk proposal transitions (e.g., approval for export).
 - Core business logic stays out of route handlers.
 - Prompts remain versioned assets, not embedded orchestration logic.
 - Provider routing is configuration-driven to reduce architectural drift.
-- Every persisted opportunity state transition emits an audit event.
+- Model routing and quota decisions are policy-driven and auditable.
+- Every persisted opportunity and proposal state transition emits an audit event.
