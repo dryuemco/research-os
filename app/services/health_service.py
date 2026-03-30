@@ -20,4 +20,3 @@ class HealthService:
 
         settings = get_settings()
         return HealthResponse(status=overall_status, app_env=settings.app_env, database=database)
-

@@ -25,15 +25,31 @@ def upgrade() -> None:
         sa.Column("actor_id", sa.String(length=255), nullable=False),
         sa.Column("payload", sa.JSON(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_audit_events_actor_id"), "audit_events", ["actor_id"], unique=False)
-    op.create_index(op.f("ix_audit_events_actor_type"), "audit_events", ["actor_type"], unique=False)
+    op.create_index(
+        op.f("ix_audit_events_actor_type"), "audit_events", ["actor_type"], unique=False
+    )
     op.create_index(op.f("ix_audit_events_entity_id"), "audit_events", ["entity_id"], unique=False)
-    op.create_index(op.f("ix_audit_events_entity_type"), "audit_events", ["entity_type"], unique=False)
-    op.create_index(op.f("ix_audit_events_event_type"), "audit_events", ["event_type"], unique=False)
+    op.create_index(
+        op.f("ix_audit_events_entity_type"), "audit_events", ["entity_type"], unique=False
+    )
+    op.create_index(
+        op.f("ix_audit_events_event_type"), "audit_events", ["event_type"], unique=False
+    )
 
     op.create_table(
         "interest_profiles",
@@ -42,11 +58,23 @@ def upgrade() -> None:
         sa.Column("parameters_json", sa.JSON(), nullable=False),
         sa.Column("active_version", sa.Integer(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_interest_profiles_user_id"), "interest_profiles", ["user_id"], unique=False)
+    op.create_index(
+        op.f("ix_interest_profiles_user_id"), "interest_profiles", ["user_id"], unique=False
+    )
 
     op.create_table(
         "opportunities",
@@ -63,13 +91,32 @@ def upgrade() -> None:
         sa.Column("current_version_hash", sa.String(length=128), nullable=False),
         sa.Column("raw_payload", sa.JSON(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_opportunities_current_version_hash"), "opportunities", ["current_version_hash"], unique=False)
-    op.create_index(op.f("ix_opportunities_external_id"), "opportunities", ["external_id"], unique=True)
-    op.create_index(op.f("ix_opportunities_source_program"), "opportunities", ["source_program"], unique=False)
+    op.create_index(
+        op.f("ix_opportunities_current_version_hash"),
+        "opportunities",
+        ["current_version_hash"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_opportunities_external_id"), "opportunities", ["external_id"], unique=True
+    )
+    op.create_index(
+        op.f("ix_opportunities_source_program"), "opportunities", ["source_program"], unique=False
+    )
     op.create_index(op.f("ix_opportunities_state"), "opportunities", ["state"], unique=False)
 
     op.create_table(
@@ -79,13 +126,30 @@ def upgrade() -> None:
         sa.Column("status", sa.String(length=32), nullable=False),
         sa.Column("config_json", sa.JSON(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("account_ref"),
     )
-    op.create_index(op.f("ix_provider_accounts_provider_name"), "provider_accounts", ["provider_name"], unique=False)
-    op.create_index(op.f("ix_provider_accounts_status"), "provider_accounts", ["status"], unique=False)
+    op.create_index(
+        op.f("ix_provider_accounts_provider_name"),
+        "provider_accounts",
+        ["provider_name"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_provider_accounts_status"), "provider_accounts", ["status"], unique=False
+    )
 
     op.create_table(
         "provider_quota_snapshots",
@@ -100,13 +164,38 @@ def upgrade() -> None:
         sa.Column("status", sa.String(length=64), nullable=False),
         sa.Column("raw_payload", sa.JSON(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_provider_quota_snapshots_account_ref"), "provider_quota_snapshots", ["account_ref"], unique=False)
-    op.create_index(op.f("ix_provider_quota_snapshots_model_name"), "provider_quota_snapshots", ["model_name"], unique=False)
-    op.create_index(op.f("ix_provider_quota_snapshots_provider_name"), "provider_quota_snapshots", ["provider_name"], unique=False)
+    op.create_index(
+        op.f("ix_provider_quota_snapshots_account_ref"),
+        "provider_quota_snapshots",
+        ["account_ref"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_provider_quota_snapshots_model_name"),
+        "provider_quota_snapshots",
+        ["model_name"],
+        unique=False,
+    )
+    op.create_index(
+        op.f("ix_provider_quota_snapshots_provider_name"),
+        "provider_quota_snapshots",
+        ["provider_name"],
+        unique=False,
+    )
 
     op.create_table(
         "task_graphs",
@@ -114,12 +203,29 @@ def upgrade() -> None:
         sa.Column("source_version_ref", sa.String(length=255), nullable=False),
         sa.Column("graph_json", sa.JSON(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_task_graphs_project_ref"), "task_graphs", ["project_ref"], unique=False)
-    op.create_index(op.f("ix_task_graphs_source_version_ref"), "task_graphs", ["source_version_ref"], unique=False)
+    op.create_index(
+        op.f("ix_task_graphs_project_ref"), "task_graphs", ["project_ref"], unique=False
+    )
+    op.create_index(
+        op.f("ix_task_graphs_source_version_ref"),
+        "task_graphs",
+        ["source_version_ref"],
+        unique=False,
+    )
 
     op.create_table(
         "opportunity_versions",
@@ -131,12 +237,27 @@ def upgrade() -> None:
         sa.Column("raw_payload", sa.JSON(), nullable=False),
         sa.Column("is_latest", sa.Boolean(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(["opportunity_id"], ["opportunities.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_opportunity_versions_version_hash"), "opportunity_versions", ["version_hash"], unique=False)
+    op.create_index(
+        op.f("ix_opportunity_versions_version_hash"),
+        "opportunity_versions",
+        ["version_hash"],
+        unique=False,
+    )
 
     op.create_table(
         "match_results",
@@ -151,8 +272,18 @@ def upgrade() -> None:
         sa.Column("recommended_role", sa.String(length=64), nullable=True),
         sa.Column("red_flags", sa.JSON(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(["opportunity_id"], ["opportunities.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["profile_id"], ["interest_profiles.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
@@ -168,8 +299,18 @@ def upgrade() -> None:
         sa.Column("mandatory_sections", sa.JSON(), nullable=False),
         sa.Column("compliance_rules", sa.JSON(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(["opportunity_id"], ["opportunities.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -188,8 +329,18 @@ def upgrade() -> None:
         sa.Column("estimated_cost_band", sa.String(length=32), nullable=False),
         sa.Column("status", sa.String(length=32), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(["task_graph_id"], ["task_graphs.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -207,13 +358,27 @@ def upgrade() -> None:
         sa.Column("status", sa.String(length=64), nullable=False),
         sa.Column("compliance_score", sa.Float(), nullable=True),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(["proposal_id"], ["proposals.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_proposal_sections_proposal_id"), "proposal_sections", ["proposal_id"], unique=False)
-    op.create_index(op.f("ix_proposal_sections_section_key"), "proposal_sections", ["section_key"], unique=False)
+    op.create_index(
+        op.f("ix_proposal_sections_proposal_id"), "proposal_sections", ["proposal_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_proposal_sections_section_key"), "proposal_sections", ["section_key"], unique=False
+    )
 
     op.create_table(
         "review_rounds",
@@ -223,12 +388,24 @@ def upgrade() -> None:
         sa.Column("reviewer_roles", sa.JSON(), nullable=False),
         sa.Column("stop_reason", sa.String(length=255), nullable=True),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(["proposal_id"], ["proposals.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_review_rounds_proposal_id"), "review_rounds", ["proposal_id"], unique=False)
+    op.create_index(
+        op.f("ix_review_rounds_proposal_id"), "review_rounds", ["proposal_id"], unique=False
+    )
 
     op.create_table(
         "review_comments",
@@ -238,12 +415,27 @@ def upgrade() -> None:
         sa.Column("comment_text", sa.Text(), nullable=False),
         sa.Column("metadata_json", sa.JSON(), nullable=False),
         sa.Column("id", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.ForeignKeyConstraint(["review_round_id"], ["review_rounds.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_review_comments_review_round_id"), "review_comments", ["review_round_id"], unique=False)
+    op.create_index(
+        op.f("ix_review_comments_review_round_id"),
+        "review_comments",
+        ["review_round_id"],
+        unique=False,
+    )
 
 
 def downgrade() -> None:
@@ -265,9 +457,15 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_task_graphs_source_version_ref"), table_name="task_graphs")
     op.drop_index(op.f("ix_task_graphs_project_ref"), table_name="task_graphs")
     op.drop_table("task_graphs")
-    op.drop_index(op.f("ix_provider_quota_snapshots_provider_name"), table_name="provider_quota_snapshots")
-    op.drop_index(op.f("ix_provider_quota_snapshots_model_name"), table_name="provider_quota_snapshots")
-    op.drop_index(op.f("ix_provider_quota_snapshots_account_ref"), table_name="provider_quota_snapshots")
+    op.drop_index(
+        op.f("ix_provider_quota_snapshots_provider_name"), table_name="provider_quota_snapshots"
+    )
+    op.drop_index(
+        op.f("ix_provider_quota_snapshots_model_name"), table_name="provider_quota_snapshots"
+    )
+    op.drop_index(
+        op.f("ix_provider_quota_snapshots_account_ref"), table_name="provider_quota_snapshots"
+    )
     op.drop_table("provider_quota_snapshots")
     op.drop_index(op.f("ix_provider_accounts_status"), table_name="provider_accounts")
     op.drop_index(op.f("ix_provider_accounts_provider_name"), table_name="provider_accounts")
