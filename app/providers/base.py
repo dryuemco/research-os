@@ -26,5 +26,4 @@ class ProviderClient(Protocol):
 
     provider_name: str
 
-    def generate(self, request: ProviderRequest) -> ProviderResponse:
-        ...
+    def generate(self, request: ProviderRequest) -> ProviderResponse: ...

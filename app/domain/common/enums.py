@@ -8,6 +8,8 @@ class OpportunityState(StrEnum):
     SHORTLISTED = "shortlisted"
     APPROVED = "approved"
     REJECTED = "rejected"
+    MONITOR_LATER = "monitor_later"
+    IGNORED = "ignored"
     ARCHIVED = "archived"
 
 
