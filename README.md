@@ -1,41 +1,51 @@
 # Research Proposal OS Starter Repository
 
-This repository now contains the first production-credible backend foundation for a Research and Proposal Operating System.
+This repository contains a production-credible backend foundation for a Research and Proposal Operating System (RPOS), including:
 
-## Included in this first pass
-- FastAPI application skeleton
-- environment-driven configuration
-- PostgreSQL-oriented SQLAlchemy setup
-- Alembic migration scaffold
-- core domain models for opportunities, proposals, execution tasks, provider quotas, and audit events
-- typed Pydantic contracts for core workflows
-- provider abstraction interfaces and config-driven routing policy loader
-- audited proposal state transition service
-- health endpoint
-- pytest test harness
-- Docker/local bootstrap files
+- opportunity ingestion, normalization, matching, and approval flows
+- proposal factory workspace foundation with concept-note and review-loop orchestration skeleton
+- provider-agnostic model routing decisions and quota policy evaluation scaffolding
+- auditable workflow transitions and typed contracts for orchestration inputs/outputs
+
+## API slices currently available
+- `GET /health`
+- `POST /opportunities/ingest/dev`
+- `GET /opportunities`
+- `GET /opportunities/{opportunity_id}`
+- `POST /opportunities/{opportunity_id}/decision`
+- `POST /matches/run`
+- `GET /matches`
+- `POST /proposal-factory/workspaces`
+- `GET /proposal-factory/workspaces/{proposal_id}`
+- `POST /proposal-factory/concept-note`
+- `POST /proposal-factory/sections/draft`
+- `POST /proposal-factory/review-rounds`
+- `POST /proposal-factory/review-feedback`
+- `GET /proposal-factory/workspaces/{proposal_id}/convergence`
+- `POST /proposal-factory/routing-preview`
+- `POST /proposal-factory/quota-preview`
 
 ## Repository layout
 - `app/api` - API routes and router wiring
 - `app/core` - config and logging
-- `app/db` - base metadata, model import registry, and sessions
-- `app/domain` - domain-specific ORM models and shared enums/mixins
-- `app/providers` - provider abstraction contracts and registry
-- `app/schemas` - typed contracts for API and workflow payloads
-- `app/services` - business services and policy loaders
-- `alembic` - migration environment and initial revision scaffold
-- `tests` - bootstrap and unit/smoke tests
-- `prompts` - versioned prompt assets kept separate from code
-- `docs` - design intent plus implementation foundation notes
+- `app/db` - metadata, model registry, and sessions
+- `app/domain` - SQLAlchemy domain models and enums
+- `app/schemas` - typed contracts
+- `app/services` - business logic services
+- `app/providers` - provider interfaces and registry
+- `alembic` - migrations
+- `prompts` - versioned prompt assets
+- `tests` - unit and API smoke tests
 
 ## Quick start
-1. Copy `.env.example` values into a local `.env` if you want local overrides.
-2. Run `docker compose up --build` for the API + PostgreSQL stack.
-3. Run `make test` for the current test suite.
-4. Run `make migrate` to apply Alembic migrations.
+1. Copy `.env.example` into `.env` if needed.
+2. Run `docker compose up --build`.
+3. Run `make migrate`.
+4. Run `make seed-dev` (optional).
+5. Run `make test`.
 
-## Important guardrails
-- Human approval remains mandatory for proposal submission and protected branch merge actions.
-- Core business logic stays out of route handlers.
-- Prompts remain versioned assets, not embedded orchestration logic.
-- Provider routing is configuration-driven to reduce architectural drift.
+## Guardrails
+- Human approval is required for high-risk proposal transitions (e.g., approval for export).
+- Business logic is service-layer only; routes remain thin.
+- Prompt content is loaded from `prompts/` (not hardcoded into orchestration services).
+- Model routing and quota decisions are policy-driven and auditable.

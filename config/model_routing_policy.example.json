@@ -1,21 +1,34 @@
 {
-  "policy_version": "v1",
+  "policy_version": "v2",
   "default_fallback_provider": "openai",
   "task_policies": {
-    "call_parsing": {
+    "concept_note": {
       "preferred_providers": ["openai", "anthropic"],
-      "privacy_level": "standard",
-      "max_cost_band": "medium"
+      "model_family": "writer-large",
+      "max_cost_band": "medium",
+      "sensitivity_levels": ["standard", "restricted"],
+      "fallback_chain": ["anthropic", "local-mistral"]
     },
-    "critical_review": {
+    "section_draft": {
+      "preferred_providers": ["openai", "local-mistral"],
+      "model_family": "writer-medium",
+      "max_cost_band": "medium",
+      "sensitivity_levels": ["standard"],
+      "fallback_chain": ["local-mistral"]
+    },
+    "scientific_review": {
       "preferred_providers": ["anthropic", "openai"],
-      "privacy_level": "restricted",
-      "max_cost_band": "high"
+      "model_family": "reviewer-high-reasoning",
+      "max_cost_band": "high",
+      "sensitivity_levels": ["restricted"],
+      "fallback_chain": ["openai"]
     },
-    "code_generation": {
-      "preferred_providers": ["local", "openai"],
-      "privacy_level": "restricted",
-      "max_cost_band": "medium"
+    "red_team_review": {
+      "preferred_providers": ["anthropic", "openai"],
+      "model_family": "reviewer-critical",
+      "max_cost_band": "high",
+      "sensitivity_levels": ["restricted"],
+      "fallback_chain": ["openai"]
     }
   }
 }

@@ -6,11 +6,13 @@ from app.domain.opportunity_discovery.models import (  # noqa: F401
     InterestProfile,
     MatchResult,
     Opportunity,
+    OpportunityIngestionSnapshot,
     OpportunityVersion,
 )
 from app.domain.proposal_factory.models import (  # noqa: F401
     Proposal,
     ProposalSection,
+    ProposalVersion,
     ReviewComment,
     ReviewRound,
 )
