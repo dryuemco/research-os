@@ -7,7 +7,21 @@ This repository contains a production-credible backend foundation for a Research
 - provider-agnostic model routing decisions and quota policy evaluation scaffolding
 - auditable workflow transitions and typed contracts for orchestration inputs/outputs
 
-## API slices currently available
+## Repository layout
+- `app/api` - API routes and router wiring
+- `app/core` - config and logging
+- `app/db` - metadata, model registry, and sessions
+- `app/domain` - SQLAlchemy domain models and enums
+- `app/providers` - provider abstraction contracts and registry
+- `app/schemas` - typed contracts for API and workflow payloads
+- `app/services` - business logic services and policy loaders
+- `app/scripts` - local development scripts
+- `alembic` - migration environment and revisions
+- `tests` - unit and API smoke tests
+- `prompts` - versioned prompt assets kept separate from code
+- `docs` - design intent plus implementation notes
+
+## API endpoints in current slice
 - `GET /health`
 - `POST /opportunities/ingest/dev`
 - `GET /opportunities`
@@ -25,27 +39,18 @@ This repository contains a production-credible backend foundation for a Research
 - `POST /proposal-factory/routing-preview`
 - `POST /proposal-factory/quota-preview`
 
-## Repository layout
-- `app/api` - API routes and router wiring
-- `app/core` - config and logging
-- `app/db` - metadata, model registry, and sessions
-- `app/domain` - SQLAlchemy domain models and enums
-- `app/schemas` - typed contracts
-- `app/services` - business logic services
-- `app/providers` - provider interfaces and registry
-- `alembic` - migrations
-- `prompts` - versioned prompt assets
-- `tests` - unit and API smoke tests
-
 ## Quick start
-1. Copy `.env.example` into `.env` if needed.
-2. Run `docker compose up --build`.
-3. Run `make migrate`.
-4. Run `make seed-dev` (optional).
-5. Run `make test`.
+1. Copy `.env.example` values into a local `.env` if you want local overrides.
+2. Run `docker compose up --build` for the API + PostgreSQL stack.
+3. Run `make migrate` to apply Alembic migrations.
+4. (Optional) Run `make seed-dev` to seed one development interest profile.
+5. Run `make test` for the current test suite.
 
-## Guardrails
+## Important guardrails
+- Human approval remains mandatory before proposal drafting or submission-related work.
 - Human approval is required for high-risk proposal transitions (e.g., approval for export).
-- Business logic is service-layer only; routes remain thin.
-- Prompt content is loaded from `prompts/` (not hardcoded into orchestration services).
+- Core business logic stays out of route handlers.
+- Prompts remain versioned assets, not embedded orchestration logic.
+- Provider routing is configuration-driven to reduce architectural drift.
 - Model routing and quota decisions are policy-driven and auditable.
+- Every persisted opportunity and proposal state transition emits an audit event.
