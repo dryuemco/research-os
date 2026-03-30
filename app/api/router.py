@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.api.routes.decomposition import router as decomposition_router
 from app.api.routes.health import router as health_router
 from app.api.routes.matching import router as matching_router
 from app.api.routes.opportunities import router as opportunities_router
@@ -13,4 +14,9 @@ api_router.include_router(
     proposal_factory_router,
     prefix="/proposal-factory",
     tags=["proposal_factory"],
+)
+api_router.include_router(
+    decomposition_router,
+    prefix="/decomposition",
+    tags=["decomposition"],
 )

@@ -6,20 +6,7 @@ This repository contains a production-credible backend foundation for a Research
 - proposal factory workspace foundation with concept-note and review-loop orchestration skeleton
 - provider-agnostic model routing decisions and quota policy evaluation scaffolding
 - auditable workflow transitions and typed contracts for orchestration inputs/outputs
-
-## Repository layout
-- `app/api` - API routes and router wiring
-- `app/core` - config and logging
-- `app/db` - metadata, model registry, and sessions
-- `app/domain` - SQLAlchemy domain models and enums
-- `app/providers` - provider abstraction contracts and registry
-- `app/schemas` - typed contracts for API and workflow payloads
-- `app/services` - business logic services and policy loaders
-- `app/scripts` - local development scripts
-- `alembic` - migration environment and revisions
-- `tests` - unit and API smoke tests
-- `prompts` - versioned prompt assets kept separate from code
-- `docs` - design intent plus implementation notes
+- project decomposition and coding-handoff planning foundation
 
 ## API endpoints in current slice
 - `GET /health`
@@ -38,6 +25,28 @@ This repository contains a production-credible backend foundation for a Research
 - `GET /proposal-factory/workspaces/{proposal_id}/convergence`
 - `POST /proposal-factory/routing-preview`
 - `POST /proposal-factory/quota-preview`
+- `POST /decomposition`
+- `GET /decomposition/{plan_id}`
+- `GET /decomposition/workspace/{proposal_id}`
+- `POST /decomposition/{plan_id}/task-graph`
+- `POST /decomposition/{plan_id}/tickets`
+- `POST /decomposition/{plan_id}/handoff`
+- `POST /decomposition/{plan_id}/decision`
+- `GET /decomposition/work-unit/{coding_work_unit_id}/routing-intent`
+
+## Repository layout
+- `app/api` - API routes and router wiring
+- `app/core` - config and logging
+- `app/db` - metadata, model registry, and sessions
+- `app/domain` - SQLAlchemy domain models and enums
+- `app/providers` - provider abstraction contracts and registry
+- `app/schemas` - typed contracts for API and workflow payloads
+- `app/services` - business logic services and policy loaders
+- `app/scripts` - local development scripts
+- `alembic` - migration environment and revisions
+- `tests` - unit and API smoke tests
+- `prompts` - versioned prompt assets kept separate from code
+- `docs` - design intent plus implementation notes
 
 ## Quick start
 1. Copy `.env.example` values into a local `.env` if you want local overrides.

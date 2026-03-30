@@ -48,6 +48,22 @@ class ExecutionStatus(StrEnum):
     FAIL = "fail"
 
 
+class DecompositionState(StrEnum):
+    NOT_STARTED = "not_started"
+    DRAFT_GENERATED = "draft_generated"
+    UNDER_REVIEW = "under_review"
+    APPROVED = "approved"
+    SUPERSEDED = "superseded"
+    ARCHIVED = "archived"
+
+
+class TicketStatus(StrEnum):
+    CREATED = "created"
+    READY = "ready"
+    BLOCKED = "blocked"
+    APPROVED = "approved"
+
+
 class CodingTaskState(StrEnum):
     CREATED = "created"
     QUEUED = "queued"

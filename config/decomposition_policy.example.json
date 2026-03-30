@@ -1,0 +1,9 @@
+{
+  "task_granularity": "medium",
+  "decomposition_depth": 2,
+  "ticket_detail_level": "engineering",
+  "provider_sensitivity_classification": "restricted",
+  "complexity_buckets": ["low", "medium", "high"],
+  "repository_risk_tier": "medium",
+  "human_approval_threshold": "all_high_risk"
+}

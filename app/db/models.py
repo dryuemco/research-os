@@ -1,7 +1,19 @@
 """Import all ORM models here so Alembic can discover metadata."""
 
 from app.domain.audit_and_observability.models import AuditEvent  # noqa: F401
-from app.domain.execution_orchestrator.models import CodingTask, TaskGraph  # noqa: F401
+from app.domain.execution_orchestrator.models import (  # noqa: F401
+    CodingTask,
+    CodingWorkUnit,
+    Deliverable,
+    EngineeringTicket,
+    ExecutionObjective,
+    ExecutionPlan,
+    Milestone,
+    RiskItem,
+    TaskGraph,
+    ValidationActivity,
+    WorkPackage,
+)
 from app.domain.opportunity_discovery.models import (  # noqa: F401
     InterestProfile,
     MatchResult,
