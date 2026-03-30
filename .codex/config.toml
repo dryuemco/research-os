@@ -1,0 +1,5 @@
+# Codex local project configuration example
+
+project_root_markers = [".git"]
+project_doc_fallback_filenames = ["TEAM_GUIDE.md", ".agents.md"]
+project_doc_max_bytes = 65536

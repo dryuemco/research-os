@@ -1,0 +1,21 @@
+{
+  "policy_version": "v1",
+  "default_fallback_provider": "openai",
+  "task_policies": {
+    "call_parsing": {
+      "preferred_providers": ["openai", "anthropic"],
+      "privacy_level": "standard",
+      "max_cost_band": "medium"
+    },
+    "critical_review": {
+      "preferred_providers": ["anthropic", "openai"],
+      "privacy_level": "restricted",
+      "max_cost_band": "high"
+    },
+    "code_generation": {
+      "preferred_providers": ["local", "openai"],
+      "privacy_level": "restricted",
+      "max_cost_band": "medium"
+    }
+  }
+}
