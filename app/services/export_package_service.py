@@ -13,6 +13,7 @@ from app.schemas.export import (
     ExportStateTransitionRequest,
     RenderRequest,
 )
+from app.services.artifact_storage.factory import build_artifact_storage
 from app.services.audit_service import AuditService
 from app.services.renderers.markdown_renderer import MarkdownExportRenderer
 
@@ -40,6 +41,7 @@ class ExportPackageService:
         self.db = db
         self.audit = AuditService(db)
         self.renderer = MarkdownExportRenderer(db)
+        self.storage = build_artifact_storage()
 
     def generate_package(self, request: RenderRequest, actor_id: str) -> ExportPackage:
         proposal = self.db.get(Proposal, request.proposal_id)
@@ -146,6 +148,17 @@ class ExportPackageService:
             raise ValueError("Export artifact not found")
         return artifact
 
+    def read_artifact_content(self, artifact_id: str) -> str:
+        artifact = self.get_artifact(artifact_id)
+        if artifact.storage_locator and artifact.storage_backend == self.storage.backend_name:
+            try:
+                return self.storage.read(artifact.storage_locator)
+            except FileNotFoundError:
+                if artifact.content_text:
+                    return artifact.content_text
+                raise
+        return artifact.content_text
+
     def build_submission_pack(self, package_id: str) -> dict:
         package = self.get_package(package_id)
         artifacts = self.list_artifacts(package.id)
@@ -187,6 +200,12 @@ class ExportPackageService:
     def _persist_artifacts(self, package_id: str, rendered_artifacts: list) -> None:
         for artifact in rendered_artifacts:
             checksum = hashlib.sha256(artifact.content_text.encode()).hexdigest()
+            stored = self.storage.store(
+                package_id=package_id,
+                file_name=artifact.file_name,
+                content_text=artifact.content_text,
+                checksum=checksum,
+            )
             model = ExportArtifact(
                 export_package_id=package_id,
                 artifact_type=artifact.artifact_type,
@@ -194,6 +213,8 @@ class ExportPackageService:
                 media_type=artifact.media_type,
                 content_text=artifact.content_text,
                 checksum=checksum,
+                storage_backend=stored.backend,
+                storage_locator=stored.locator,
                 metadata_json=artifact.metadata_json,
             )
             self.db.add(model)
@@ -201,6 +222,12 @@ class ExportPackageService:
         # include export manifest artifact
         manifest_text = "# Export Manifest\nThis artifact is generated with the package metadata."
         manifest_checksum = hashlib.sha256(manifest_text.encode()).hexdigest()
+        manifest_ref = self.storage.store(
+            package_id=package_id,
+            file_name="export_manifest.md",
+            content_text=manifest_text,
+            checksum=manifest_checksum,
+        )
         self.db.add(
             ExportArtifact(
                 export_package_id=package_id,
@@ -209,6 +236,8 @@ class ExportPackageService:
                 media_type="text/markdown",
                 content_text=manifest_text,
                 checksum=manifest_checksum,
+                storage_backend=manifest_ref.backend,
+                storage_locator=manifest_ref.locator,
                 metadata_json={},
             )
         )

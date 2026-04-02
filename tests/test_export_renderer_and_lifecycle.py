@@ -131,3 +131,23 @@ def test_submission_pack_contains_manifest_and_artifacts(db_session):
     assert pack["proposal_id"] == proposal.id
     assert pack["artifacts"]
     assert any(a["artifact_type"] == "export_manifest" for a in pack["artifacts"])
+
+
+def test_read_artifact_content_falls_back_to_db_text_when_storage_file_missing(db_session):
+    proposal, version = _seed_proposal_with_content(db_session)
+    service = ExportPackageService(db_session)
+    package = service.generate_package(
+        RenderRequest(proposal_id=proposal.id, proposal_version_id=version.id),
+        actor_id="operator-1",
+    )
+    db_session.commit()
+
+    artifact = next(
+        a for a in service.list_artifacts(package.id) if a.file_name == "proposal_narrative.md"
+    )
+    artifact.storage_locator = "missing/path/proposal_narrative.md"
+    db_session.add(artifact)
+    db_session.commit()
+
+    content = service.read_artifact_content(artifact.id)
+    assert "Exportable Proposal" in content

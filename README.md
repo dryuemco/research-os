@@ -111,3 +111,9 @@ This repository contains a production-credible backend foundation for a Research
 - Export packages are lifecycle-managed (`draft`, `ready_for_review`, `approved`, `superseded`, `archived`, `failed`) and require explicit approval transitions.
 - Markdown renderer foundation produces human-editable artifacts (proposal narrative, reviewer log, evidence summary, decomposition summary, manifest).
 - Submission pack endpoint assembles artifact metadata + checksums without external portal submission.
+
+
+## Pilot auth and hardening notes
+- Protected mutating/sensitive routes require `X-Internal-Api-Key` and `X-User-Id` headers.
+- Role-based permission guards are enforced for export approval, runtime control, memory block mutation, and opportunity approval actions.
+- Retrieval backend and artifact storage are pluggable via `RETRIEVAL_BACKEND` and `ARTIFACT_STORAGE_BACKEND` settings.

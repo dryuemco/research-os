@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
+from app.domain.common.enums import Permission
 from app.domain.institutional_memory.models import MemoryDocument, ReusableEvidenceBlock
 from app.schemas.export import (
     ExportArtifactResponse,
@@ -23,6 +24,7 @@ from app.schemas.memory import (
     ReusableBlockResponse,
     ReusableBlockUpdate,
 )
+from app.security.auth import require_permissions
 from app.services.context_assembly_service import ContextAssemblyService
 from app.services.export_package_service import ExportPackageService, InvalidExportTransitionError
 from app.services.memory_service import MemoryService
@@ -71,6 +73,7 @@ def list_documents(
 def create_block(
     request: ReusableBlockCreate,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.MEMORY_BLOCK_MUTATE))],
 ) -> ReusableBlockResponse:
     try:
         block = MemoryService(db).create_block(request)
@@ -94,6 +97,7 @@ def list_blocks(
 def get_block(
     block_id: str,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.MEMORY_BLOCK_MUTATE))],
 ) -> ReusableBlockResponse:
     block = db.get(ReusableEvidenceBlock, block_id)
     if block is None:
@@ -106,6 +110,7 @@ def update_block(
     block_id: str,
     request: ReusableBlockUpdate,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.MEMORY_BLOCK_MUTATE))],
 ) -> ReusableBlockResponse:
     try:
         block = MemoryService(db).update_block(block_id, request)
@@ -135,6 +140,7 @@ def retrieval_preview(
 def generate_export_package(
     request: RenderRequest,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.EXPORT_GENERATE))],
     actor_id: str = Query(default="operator"),
 ) -> ExportPackageResponse:
     service = ExportPackageService(db)
@@ -160,6 +166,7 @@ def list_export_packages(
 def get_export_package(
     package_id: str,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.EXPORT_APPROVE))],
 ) -> ExportPackageResponse:
     try:
         package = ExportPackageService(db).get_package(package_id)
@@ -173,6 +180,7 @@ def transition_export_package(
     package_id: str,
     request: ExportStateTransitionRequest,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.EXPORT_APPROVE))],
 ) -> ExportPackageResponse:
     service = ExportPackageService(db)
     try:
@@ -199,10 +207,10 @@ def download_export_artifact(
     db: Annotated[Session, Depends(get_db_session)],
 ) -> str:
     try:
-        artifact = ExportPackageService(db).get_artifact(artifact_id)
+        content = ExportPackageService(db).read_artifact_content(artifact_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    return artifact.content_text
+    return content
 
 
 @router.get("/exports/{package_id}/submission-pack")

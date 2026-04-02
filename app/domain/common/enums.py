@@ -154,3 +154,22 @@ class ExportArtifactType(StrEnum):
     DECOMPOSITION_SUMMARY = "decomposition_summary"
     EXPORT_MANIFEST = "export_manifest"
 
+
+
+class UserRole(StrEnum):
+    RESEARCH_LEAD = "research_lead"
+    GRANT_WRITER = "grant_writer"
+    REVIEWER = "reviewer"
+    TECHNICAL_LEAD = "technical_lead"
+    ADMIN = "admin"
+
+
+class Permission(StrEnum):
+    OPPORTUNITY_APPROVE = "opportunity_approve"
+    PROPOSAL_STATE_TRANSITION = "proposal_state_transition"
+    EXPORT_GENERATE = "export_generate"
+    EXPORT_APPROVE = "export_approve"
+    MEMORY_BLOCK_MUTATE = "memory_block_mutate"
+    RUNTIME_CONTROL = "runtime_control"
+    VIEW_SENSITIVE = "view_sensitive"
+

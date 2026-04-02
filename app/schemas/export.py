@@ -55,6 +55,8 @@ class ExportArtifactResponse(BaseModel):
     file_name: str
     media_type: str
     checksum: str
+    storage_backend: str
+    storage_locator: str | None
     created_at: datetime
 
 

@@ -117,4 +117,6 @@ class ExportArtifact(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     media_type: Mapped[str] = mapped_column(String(128), default="text/markdown")
     content_text: Mapped[str] = mapped_column(Text)
     checksum: Mapped[str] = mapped_column(String(128), index=True)
+    storage_backend: Mapped[str] = mapped_column(String(64), default="db_fallback")
+    storage_locator: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     metadata_json: Mapped[dict] = mapped_column(JSONType, default=dict)

@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
+from app.domain.common.enums import Permission
 from app.schemas.runtime_execution import (
     ExecutionRunResponse,
     ExecutionTaskRequest,
@@ -13,6 +14,7 @@ from app.schemas.runtime_execution import (
     RoutingQuotaPreviewRequest,
     RoutingQuotaPreviewResponse,
 )
+from app.security.auth import require_permissions
 from app.services.execution_runtime_service import ExecutionRuntimeService
 
 router = APIRouter()
@@ -22,6 +24,7 @@ router = APIRouter()
 def submit_execution_task(
     request: ExecutionTaskRequest,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.RUNTIME_CONTROL))],
 ) -> ExecutionRunResponse:
     service = ExecutionRuntimeService(db)
     try:
@@ -37,6 +40,7 @@ def submit_execution_task(
 def get_execution_run(
     run_id: str,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.RUNTIME_CONTROL))],
 ) -> ExecutionRunResponse:
     service = ExecutionRuntimeService(db)
     try:
@@ -51,6 +55,7 @@ def retry_execution_run(
     run_id: str,
     request: RetryRunRequest,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.RUNTIME_CONTROL))],
 ) -> ExecutionRunResponse:
     service = ExecutionRuntimeService(db)
     try:
@@ -67,6 +72,7 @@ def resume_execution_run(
     run_id: str,
     request: ResumeRunRequest,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.RUNTIME_CONTROL))],
 ) -> ExecutionRunResponse:
     service = ExecutionRuntimeService(db)
     try:
@@ -102,6 +108,7 @@ def list_provider_traces(
 @router.post("/jobs/process-next")
 def process_next_job(
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.RUNTIME_CONTROL))],
 ) -> dict:
     service = ExecutionRuntimeService(db)
     job = service.process_next_job()

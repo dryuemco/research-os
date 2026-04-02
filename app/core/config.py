@@ -34,6 +34,11 @@ class Settings(BaseSettings):
         alias="OPENAI_COMPATIBLE_API_KEY",
     )
 
+    internal_api_key: str | None = Field(default="dev-internal-key", alias="INTERNAL_API_KEY")
+    retrieval_backend: str = Field(default="lexical", alias="RETRIEVAL_BACKEND")
+    artifact_storage_backend: str = Field(default="local_fs", alias="ARTIFACT_STORAGE_BACKEND")
+    artifact_storage_root: str = Field(default="./artifacts", alias="ARTIFACT_STORAGE_ROOT")
+
 
 @lru_cache
 def get_settings() -> Settings:
