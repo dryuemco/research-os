@@ -14,6 +14,7 @@ from app.schemas.audit import AuditEventSchema
 from app.schemas.opportunity import OpportunityIngestRequest, OpportunityNormalized
 from app.services.audit_service import AuditService
 from app.services.opportunity_adapters import DEFAULT_ADAPTERS
+from app.services.opportunity_adapters.base import AdapterNormalizationError
 from app.services.opportunity_state_service import OpportunityStateService
 
 
@@ -28,7 +29,22 @@ class OpportunityIngestionService:
         adapter = self.adapters.get(request.source_name)
         if adapter is None:
             raise ValueError(f"No adapter registered for source '{request.source_name}'")
-        normalized = adapter.normalize(request.source_record_id, request.payload)
+        try:
+            normalized = adapter.normalize(request.source_record_id, request.payload)
+        except AdapterNormalizationError as exc:
+            self.audit.emit(
+                AuditEventSchema(
+                    event_type="opportunity_ingestion_failed",
+                    entity_type="opportunity_source",
+                    entity_id=f"{request.source_name}:{request.source_record_id}",
+                    actor_type="system",
+                    actor_id="ingestion_pipeline",
+                    payload={"error_code": exc.code, "message": str(exc)},
+                )
+            )
+            self.db.flush()
+            raise
+
         return self._persist_ingested(
             source_name=request.source_name,
             source_record_id=request.source_record_id,
@@ -142,7 +158,7 @@ class OpportunityIngestionService:
                     entity_id=opportunity.id,
                     actor_type="system",
                     actor_id="ingestion_pipeline",
-                    payload={"version_hash": normalized.version_hash},
+                    payload={"version_hash": normalized.version_hash, "payload_hash": payload_hash},
                 )
             )
 

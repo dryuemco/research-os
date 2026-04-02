@@ -25,6 +25,25 @@ class Settings(BaseSettings):
         alias="MODEL_ROUTING_POLICY_PATH",
     )
 
+    openai_compatible_base_url: str = Field(
+        default="https://api.openai.com/v1",
+        alias="OPENAI_COMPATIBLE_BASE_URL",
+    )
+    openai_compatible_api_key: str | None = Field(
+        default=None,
+        alias="OPENAI_COMPATIBLE_API_KEY",
+    )
+
+    internal_api_key: str | None = Field(default="dev-internal-key", alias="INTERNAL_API_KEY")
+    retrieval_backend: str = Field(default="lexical", alias="RETRIEVAL_BACKEND")
+    artifact_storage_backend: str = Field(default="local_fs", alias="ARTIFACT_STORAGE_BACKEND")
+    artifact_storage_root: str = Field(default="./artifacts", alias="ARTIFACT_STORAGE_ROOT")
+    artifact_download_secret: str = Field(
+        default="dev-artifact-download-secret",
+        alias="ARTIFACT_DOWNLOAD_SECRET",
+    )
+    artifact_download_ttl_seconds: int = Field(default=300, alias="ARTIFACT_DOWNLOAD_TTL_SECONDS")
+
 
 @lru_cache
 def get_settings() -> Settings:
