@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes.decomposition import router as decomposition_router
+from app.api.routes.execution_runtime import router as execution_runtime_router
 from app.api.routes.health import router as health_router
 from app.api.routes.matching import router as matching_router
 from app.api.routes.opportunities import router as opportunities_router
@@ -19,4 +20,9 @@ api_router.include_router(
     decomposition_router,
     prefix="/decomposition",
     tags=["decomposition"],
+)
+api_router.include_router(
+    execution_runtime_router,
+    prefix="/execution-runtime",
+    tags=["execution_runtime"],
 )
