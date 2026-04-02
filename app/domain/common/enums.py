@@ -118,3 +118,28 @@ class ProviderTraceStatus(StrEnum):
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     REROUTED = "rerouted"
+
+
+class ApprovalStatus(StrEnum):
+    DRAFT = "draft"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class MemoryCategory(StrEnum):
+    ORGANIZATION_PROFILE = "organization_profile"
+    INFRASTRUCTURE = "infrastructure"
+    STAFF_EXPERTISE = "staff_expertise"
+    PRIOR_PROJECT = "prior_project"
+    PUBLICATION_EVIDENCE = "publication_evidence"
+    IMPACT_EVIDENCE = "impact_evidence"
+    METHODOLOGY_SNIPPET = "methodology_snippet"
+    PARTNER_NOTE = "partner_note"
+    REUSABLE_PROPOSAL_BLOCK = "reusable_proposal_block"
+
+
+class ExportPackageStatus(StrEnum):
+    GENERATED = "generated"
+    REVIEW_REQUIRED = "review_required"
+    APPROVED = "approved"
+

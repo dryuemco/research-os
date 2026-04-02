@@ -40,6 +40,24 @@ This repository contains a production-credible backend foundation for a Research
 - `POST /execution-runtime/routing-quota-preview`
 - `GET /execution-runtime/traces`
 - `POST /execution-runtime/jobs/process-next`
+- `GET /dashboard/summary`
+- `GET /dashboard/opportunities`
+- `GET /dashboard/matches`
+- `GET /dashboard/proposals`
+- `GET /dashboard/decomposition`
+- `GET /dashboard/runs`
+- `GET /dashboard/audit`
+- `POST /memory/sources`
+- `POST /memory/documents`
+- `GET /memory/documents`
+- `POST /memory/blocks`
+- `GET /memory/blocks`
+- `GET /memory/blocks/{block_id}`
+- `PUT /memory/blocks/{block_id}`
+- `POST /memory/retrieval/preview`
+- `POST /memory/export/preview`
+- `POST /memory/export/packages`
+- `GET /ui`
 
 ## Repository layout
 - `app/api` - API routes and router wiring
