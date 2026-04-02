@@ -64,6 +64,14 @@ This repository contains a production-credible backend foundation for a Research
 - `GET /memory/exports/artifacts/{artifact_id}/download`
 - `GET /memory/exports/{package_id}/submission-pack`
 - `GET /ui`
+- `GET /operations/sources`
+- `POST /operations/jobs/ingestion`
+- `POST /operations/jobs/matching`
+- `POST /operations/scheduler/tick`
+- `GET /operations/jobs`
+- `GET /operations/matching-runs`
+- `GET /operations/notifications`
+- `POST /operations/notifications/{notification_id}/read`
 
 ## Repository layout
 - `app/api` - API routes and router wiring
@@ -126,3 +134,9 @@ This repository contains a production-credible backend foundation for a Research
 - Ensure `ARTIFACT_STORAGE_ROOT` exists and is writable by API + worker containers.
 - Configure `ARTIFACT_DOWNLOAD_SECRET` per environment and rotate between pilot phases.
 - Use `make run-api`, `make run-worker`, `make migrate`, and `make check` for repeatable pilot operations.
+
+## Operational loop notes
+- Operational loop jobs are persisted (`operational_job_runs`) and auditable.
+- Scheduler can be run with `make run-ops`; due jobs are executed based on `next_run_at`.
+- Source ingestion supports fixture-backed pull mode via `OPERATIONAL_SOURCE_FIXTURE_PATH`.
+- Notifications are currently in-app/internal and queryable via `/operations/notifications`.

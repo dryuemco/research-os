@@ -7,6 +7,7 @@ from app.domain.audit_and_observability.models import AuditEvent
 from app.domain.execution_orchestrator.models import ExecutionPlan
 from app.domain.execution_orchestrator.runtime_models import ExecutionRun
 from app.domain.institutional_memory.models import ExportPackage, ReusableEvidenceBlock
+from app.domain.operations.models import MatchingRun, Notification, OperationalJobRun
 from app.domain.opportunity_discovery.models import MatchResult, Opportunity
 from app.domain.proposal_factory.models import Proposal
 
@@ -26,6 +27,11 @@ class DashboardService:
                 self.db.scalar(select(func.count()).select_from(ReusableEvidenceBlock)) or 0
             ),
             "export_packages": self.db.scalar(select(func.count()).select_from(ExportPackage)) or 0,
+            "operational_job_runs": (
+                self.db.scalar(select(func.count()).select_from(OperationalJobRun)) or 0
+            ),
+            "matching_runs": self.db.scalar(select(func.count()).select_from(MatchingRun)) or 0,
+            "notifications": self.db.scalar(select(func.count()).select_from(Notification)) or 0,
         }
 
     def audit_timeline(self, *, limit: int = 50, offset: int = 0) -> list[AuditEvent]:

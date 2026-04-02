@@ -29,6 +29,12 @@ from app.domain.institutional_memory.models import (  # noqa: F401
     MemoryDocument,
     ReusableEvidenceBlock,
 )
+from app.domain.operations.models import (  # noqa: F401
+    MatchingRun,
+    Notification,
+    OperationalJobConfig,
+    OperationalJobRun,
+)
 from app.domain.opportunity_discovery.models import (  # noqa: F401
     InterestProfile,
     MatchResult,

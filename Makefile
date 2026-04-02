@@ -30,5 +30,8 @@ seed-dev:
 run-worker:
 	$(PYTHON) -m app.scripts.run_execution_worker
 
+run-ops:
+	$(PYTHON) -m app.scripts.run_operational_loop
+
 check:
 	ruff check . && pytest -q

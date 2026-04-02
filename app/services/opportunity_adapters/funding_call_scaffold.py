@@ -1,10 +1,14 @@
 import hashlib
+import json
+from pathlib import Path
 
+from app.core.config import get_settings
 from app.schemas.opportunity import OpportunityNormalized
 from app.services.opportunity_adapters.base import (
     AdapterCapabilityMetadata,
     AdapterNormalizationError,
     OpportunitySourceAdapter,
+    SourceAdapterRecord,
 )
 
 
@@ -18,6 +22,22 @@ class FundingCallScaffoldAdapter(OpportunitySourceAdapter):
         supports_deadline_detection=True,
         normalization_version="v2",
     )
+
+    def fetch_records(self) -> list[SourceAdapterRecord]:
+        settings = get_settings()
+        fixture = Path(settings.operational_source_fixture_path)
+        if not fixture.exists():
+            return []
+        payload = json.loads(fixture.read_text(encoding="utf-8"))
+        records: list[SourceAdapterRecord] = []
+        for item in payload.get("records", []):
+            records.append(
+                SourceAdapterRecord(
+                    source_record_id=item["source_record_id"],
+                    payload=item["payload"],
+                )
+            )
+        return records
 
     def normalize(self, source_record_id: str, payload: dict) -> OpportunityNormalized:
         if not payload.get("title"):

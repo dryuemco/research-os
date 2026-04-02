@@ -43,6 +43,16 @@ class Settings(BaseSettings):
         alias="ARTIFACT_DOWNLOAD_SECRET",
     )
     artifact_download_ttl_seconds: int = Field(default=300, alias="ARTIFACT_DOWNLOAD_TTL_SECONDS")
+    operational_scheduler_enabled: bool = Field(
+        default=True, alias="OPERATIONAL_SCHEDULER_ENABLED"
+    )
+    operational_scheduler_tick_seconds: int = Field(
+        default=60, alias="OPERATIONAL_SCHEDULER_TICK_SECONDS"
+    )
+    operational_source_fixture_path: str = Field(
+        default="./config/dev_source_payloads.example.json",
+        alias="OPERATIONAL_SOURCE_FIXTURE_PATH",
+    )
 
 
 @lru_cache

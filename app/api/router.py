@@ -7,6 +7,7 @@ from app.api.routes.health import router as health_router
 from app.api.routes.internal_ui import router as internal_ui_router
 from app.api.routes.matching import router as matching_router
 from app.api.routes.memory import router as memory_router
+from app.api.routes.operations import router as operations_router
 from app.api.routes.opportunities import router as opportunities_router
 from app.api.routes.proposal_factory import router as proposal_factory_router
 
@@ -31,4 +32,5 @@ api_router.include_router(
 )
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(memory_router, prefix="/memory", tags=["memory"])
+api_router.include_router(operations_router, prefix="/operations", tags=["operations"])
 api_router.include_router(internal_ui_router, prefix="/ui", tags=["internal_ui"])

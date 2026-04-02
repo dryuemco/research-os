@@ -9,6 +9,7 @@ from app.domain.audit_and_observability.models import AuditEvent
 from app.domain.execution_orchestrator.models import ExecutionPlan
 from app.domain.execution_orchestrator.runtime_models import ExecutionRun
 from app.domain.institutional_memory.models import ExportPackage, ReusableEvidenceBlock
+from app.domain.operations.models import MatchingRun, Notification, OperationalJobRun
 from app.domain.opportunity_discovery.models import MatchResult, Opportunity
 from app.domain.proposal_factory.models import Proposal, ReviewRound
 from app.schemas.audit import AuditEventSchema
@@ -231,3 +232,77 @@ def dashboard_audit_timeline(
 
     events = DashboardService(db).audit_timeline(limit=limit, offset=offset)
     return [AuditEventSchema.model_validate(event) for event in events]
+
+
+@router.get("/operations/jobs")
+def dashboard_operational_jobs(
+    db: Annotated[Session, Depends(get_db_session)],
+    limit: int = Query(default=20, ge=1, le=200),
+) -> dict:
+    items = db.scalars(
+        select(OperationalJobRun).order_by(OperationalJobRun.created_at.desc()).limit(limit)
+    ).all()
+    return {
+        "items": [
+            {
+                "id": i.id,
+                "job_type": i.job_type.value,
+                "status": i.status.value,
+                "trigger_source": i.trigger_source,
+                "result_summary": i.result_summary,
+                "error_summary": i.error_summary,
+            }
+            for i in items
+        ]
+    }
+
+
+@router.get("/operations/matching-runs")
+def dashboard_matching_runs(
+    db: Annotated[Session, Depends(get_db_session)],
+    limit: int = Query(default=20, ge=1, le=200),
+) -> dict:
+    items = db.scalars(
+        select(MatchingRun).order_by(MatchingRun.created_at.desc()).limit(limit)
+    ).all()
+    return {
+        "items": [
+            {
+                "id": i.id,
+                "profile_id": i.profile_id,
+                "status": i.status.value,
+                "opportunities_scanned": i.opportunities_scanned,
+                "matches_created": i.matches_created,
+                "recommendations_count": i.recommendations_count,
+                "red_flags_count": i.red_flags_count,
+            }
+            for i in items
+        ]
+    }
+
+
+@router.get("/operations/notifications")
+def dashboard_notifications(
+    db: Annotated[Session, Depends(get_db_session)],
+    user_id: str = Query(default="ops-admin"),
+    limit: int = Query(default=20, ge=1, le=200),
+) -> dict:
+    items = db.scalars(
+        select(Notification)
+        .where(Notification.recipient_user_id == user_id)
+        .order_by(Notification.created_at.desc())
+        .limit(limit)
+    ).all()
+    return {
+        "items": [
+            {
+                "id": n.id,
+                "type": n.notification_type.value,
+                "status": n.status.value,
+                "related_entity_type": n.related_entity_type,
+                "related_entity_id": n.related_entity_id,
+                "payload_json": n.payload_json,
+            }
+            for n in items
+        ]
+    }

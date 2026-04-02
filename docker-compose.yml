@@ -49,16 +49,16 @@ services:
       db:
         condition: service_healthy
 
-
-  worker:
+  ops_worker:
     build:
       context: .
       dockerfile: Dockerfile
     env_file:
       - .env.example
-    command: python -m app.scripts.run_execution_worker
+    command: python -m app.scripts.run_operational_loop
     volumes:
       - .:/workspace
+      - artifacts_data:/workspace/artifacts
     working_dir: /workspace
     depends_on:
       db:

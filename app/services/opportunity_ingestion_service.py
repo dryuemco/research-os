@@ -1,5 +1,6 @@
 import hashlib
 import json
+from dataclasses import dataclass
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -45,6 +46,21 @@ class OpportunityIngestionService:
             self.db.flush()
             raise
 
+        opportunity, _ = self._persist_ingested(
+            source_name=request.source_name,
+            source_record_id=request.source_record_id,
+            payload=request.payload,
+            normalized=normalized,
+        )
+        return opportunity
+
+    def ingest_dev_payload_with_result(
+        self, request: OpportunityIngestRequest
+    ) -> tuple[Opportunity, "IngestionOutcome"]:
+        adapter = self.adapters.get(request.source_name)
+        if adapter is None:
+            raise ValueError(f"No adapter registered for source '{request.source_name}'")
+        normalized = adapter.normalize(request.source_record_id, request.payload)
         return self._persist_ingested(
             source_name=request.source_name,
             source_record_id=request.source_record_id,
@@ -59,7 +75,7 @@ class OpportunityIngestionService:
         source_record_id: str,
         payload: dict,
         normalized: OpportunityNormalized,
-    ) -> Opportunity:
+    ) -> tuple[Opportunity, "IngestionOutcome"]:
         canonical_payload = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         payload_hash = hashlib.sha256(canonical_payload.encode()).hexdigest()
 
@@ -84,7 +100,9 @@ class OpportunityIngestionService:
             select(Opportunity).where(Opportunity.external_id == normalized.external_id)
         )
 
+        created = False
         if opportunity is None:
+            created = True
             opportunity = Opportunity(
                 source_program=normalized.source_program,
                 source_url=normalized.source_url,
@@ -119,10 +137,24 @@ class OpportunityIngestionService:
             )
         )
 
+        changed_fields: list[str] = []
         if (
             opportunity.current_version_hash != normalized.version_hash
             or has_latest_version is None
         ):
+            if not created:
+                changed_fields = [
+                    field
+                    for field in [
+                        "title",
+                        "summary",
+                        "deadline_at",
+                        "call_status",
+                        "budget_total",
+                        "currency",
+                    ]
+                    if getattr(opportunity, field) != getattr(normalized, field)
+                ]
             self.db.query(OpportunityVersion).filter(
                 OpportunityVersion.opportunity_id == opportunity.id,
                 OpportunityVersion.is_latest.is_(True),
@@ -158,9 +190,16 @@ class OpportunityIngestionService:
                     entity_id=opportunity.id,
                     actor_type="system",
                     actor_id="ingestion_pipeline",
-                    payload={"version_hash": normalized.version_hash, "payload_hash": payload_hash},
+                    payload={
+                        "version_hash": normalized.version_hash,
+                        "payload_hash": payload_hash,
+                        "changed_fields": changed_fields,
+                    },
                 )
             )
+            outcome_type = "created" if created else "updated"
+        else:
+            outcome_type = "unchanged"
 
         if opportunity.state == OpportunityState.DISCOVERED:
             self.state_service.transition_state(
@@ -172,4 +211,19 @@ class OpportunityIngestionService:
             )
 
         self.db.flush()
-        return opportunity
+        return opportunity, IngestionOutcome(
+            outcome=outcome_type,
+            source_name=source_name,
+            source_record_id=source_record_id,
+            opportunity_id=opportunity.id,
+            changed_fields=changed_fields,
+        )
+
+
+@dataclass(slots=True)
+class IngestionOutcome:
+    outcome: str
+    source_name: str
+    source_record_id: str
+    opportunity_id: str
+    changed_fields: list[str]

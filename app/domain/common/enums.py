@@ -181,3 +181,28 @@ class Permission(StrEnum):
     MEMORY_BLOCK_MUTATE = "memory_block_mutate"
     RUNTIME_CONTROL = "runtime_control"
     VIEW_SENSITIVE = "view_sensitive"
+
+
+class OperationalJobType(StrEnum):
+    SOURCE_INGESTION = "source_ingestion"
+    MATCHING = "matching"
+
+
+class OperationalJobStatus(StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+
+
+class NotificationType(StrEnum):
+    NEW_MATCH = "new_match"
+    OPPORTUNITY_CHANGED = "opportunity_changed"
+    JOB_FAILED = "job_failed"
+
+
+class NotificationStatus(StrEnum):
+    PENDING = "pending"
+    SENT = "sent"
+    FAILED = "failed"
+    READ = "read"
