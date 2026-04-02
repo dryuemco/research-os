@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.domain.audit_and_observability.models import AuditEvent
 from app.domain.execution_orchestrator.models import ExecutionPlan
 from app.domain.execution_orchestrator.runtime_models import ExecutionRun
-from app.domain.institutional_memory.models import ReusableEvidenceBlock
+from app.domain.institutional_memory.models import ExportPackage, ReusableEvidenceBlock
 from app.domain.opportunity_discovery.models import MatchResult, Opportunity
 from app.domain.proposal_factory.models import Proposal
 
@@ -25,6 +25,7 @@ class DashboardService:
             "memory_blocks": (
                 self.db.scalar(select(func.count()).select_from(ReusableEvidenceBlock)) or 0
             ),
+            "export_packages": self.db.scalar(select(func.count()).select_from(ExportPackage)) or 0,
         }
 
     def audit_timeline(self, *, limit: int = 50, offset: int = 0) -> list[AuditEvent]:

@@ -4,7 +4,12 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
 from app.db.base import Base
-from app.domain.common.enums import ApprovalStatus, ExportPackageStatus, MemoryCategory
+from app.domain.common.enums import (
+    ApprovalStatus,
+    ExportArtifactType,
+    ExportPackageStatus,
+    MemoryCategory,
+)
 from app.domain.common.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 JSONType = JSON().with_variant(JSONB, "postgresql")
@@ -83,11 +88,33 @@ class ExportPackage(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     proposal_id: Mapped[str] = mapped_column(
         ForeignKey("proposals.id", ondelete="CASCADE"), index=True
     )
+    proposal_version_id: Mapped[str | None] = mapped_column(
+        ForeignKey("proposal_versions.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     package_name: Mapped[str] = mapped_column(String(255))
     status: Mapped[ExportPackageStatus] = mapped_column(
         Enum(ExportPackageStatus),
-        default=ExportPackageStatus.GENERATED,
+        default=ExportPackageStatus.DRAFT,
         index=True,
     )
     package_manifest: Mapped[dict] = mapped_column(JSONType, default=dict)
     unresolved_items: Mapped[list[dict]] = mapped_column(JSONType, default=list)
+    generated_by: Mapped[str] = mapped_column(String(255), default="system")
+    approval_actor_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    supersedes_package_id: Mapped[str | None] = mapped_column(
+        ForeignKey("export_packages.id", ondelete="SET NULL"), nullable=True
+    )
+
+
+class ExportArtifact(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "export_artifacts"
+
+    export_package_id: Mapped[str] = mapped_column(
+        ForeignKey("export_packages.id", ondelete="CASCADE"), index=True
+    )
+    artifact_type: Mapped[ExportArtifactType] = mapped_column(Enum(ExportArtifactType), index=True)
+    file_name: Mapped[str] = mapped_column(String(255))
+    media_type: Mapped[str] = mapped_column(String(128), default="text/markdown")
+    content_text: Mapped[str] = mapped_column(Text)
+    checksum: Mapped[str] = mapped_column(String(128), index=True)
+    metadata_json: Mapped[dict] = mapped_column(JSONType, default=dict)

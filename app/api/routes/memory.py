@@ -1,15 +1,20 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import PlainTextResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
 from app.domain.institutional_memory.models import MemoryDocument, ReusableEvidenceBlock
+from app.schemas.export import (
+    ExportArtifactResponse,
+    ExportPackageResponse,
+    ExportStateTransitionRequest,
+    RenderRequest,
+)
 from app.schemas.memory import (
     DocumentSourceCreate,
-    ExportPackagePreviewRequest,
-    ExportPackagePreviewResponse,
     MemoryDocumentCreate,
     MemoryDocumentResponse,
     RetrievalContextAssembly,
@@ -19,7 +24,7 @@ from app.schemas.memory import (
     ReusableBlockUpdate,
 )
 from app.services.context_assembly_service import ContextAssemblyService
-from app.services.export_package_service import ExportPackageService
+from app.services.export_package_service import ExportPackageService, InvalidExportTransitionError
 from app.services.memory_service import MemoryService
 from app.services.retrieval_service import RetrievalService
 
@@ -126,27 +131,86 @@ def retrieval_preview(
     return context_service.assemble_for_concept_note(request)
 
 
-@router.post("/export/preview", response_model=ExportPackagePreviewResponse)
-def export_preview(
-    request: ExportPackagePreviewRequest,
+@router.post("/exports/generate", response_model=ExportPackageResponse)
+def generate_export_package(
+    request: RenderRequest,
     db: Annotated[Session, Depends(get_db_session)],
-) -> ExportPackagePreviewResponse:
+    actor_id: str = Query(default="operator"),
+) -> ExportPackageResponse:
+    service = ExportPackageService(db)
     try:
-        response = ExportPackageService(db).preview(request)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return response
-
-
-@router.post("/export/packages")
-def create_export_package(
-    request: ExportPackagePreviewRequest,
-    db: Annotated[Session, Depends(get_db_session)],
-) -> dict:
-    try:
-        package = ExportPackageService(db).persist_preview(request)
+        package = service.generate_package(request, actor_id=actor_id)
         db.commit()
     except ValueError as exc:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return {"package_id": package.id, "package_name": package.package_name}
+    return ExportPackageResponse.model_validate(package)
+
+
+@router.get("/exports", response_model=list[ExportPackageResponse])
+def list_export_packages(
+    db: Annotated[Session, Depends(get_db_session)],
+    proposal_id: str | None = Query(default=None),
+) -> list[ExportPackageResponse]:
+    packages = ExportPackageService(db).list_packages(proposal_id=proposal_id)
+    return [ExportPackageResponse.model_validate(item) for item in packages]
+
+
+@router.get("/exports/{package_id}", response_model=ExportPackageResponse)
+def get_export_package(
+    package_id: str,
+    db: Annotated[Session, Depends(get_db_session)],
+) -> ExportPackageResponse:
+    try:
+        package = ExportPackageService(db).get_package(package_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return ExportPackageResponse.model_validate(package)
+
+
+@router.post("/exports/{package_id}/transition", response_model=ExportPackageResponse)
+def transition_export_package(
+    package_id: str,
+    request: ExportStateTransitionRequest,
+    db: Annotated[Session, Depends(get_db_session)],
+) -> ExportPackageResponse:
+    service = ExportPackageService(db)
+    try:
+        package = service.transition_status(package_id, request)
+        db.commit()
+    except (ValueError, InvalidExportTransitionError) as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ExportPackageResponse.model_validate(package)
+
+
+@router.get("/exports/{package_id}/artifacts", response_model=list[ExportArtifactResponse])
+def list_export_artifacts(
+    package_id: str,
+    db: Annotated[Session, Depends(get_db_session)],
+) -> list[ExportArtifactResponse]:
+    items = ExportPackageService(db).list_artifacts(package_id)
+    return [ExportArtifactResponse.model_validate(item) for item in items]
+
+
+@router.get("/exports/artifacts/{artifact_id}/download", response_class=PlainTextResponse)
+def download_export_artifact(
+    artifact_id: str,
+    db: Annotated[Session, Depends(get_db_session)],
+) -> str:
+    try:
+        artifact = ExportPackageService(db).get_artifact(artifact_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return artifact.content_text
+
+
+@router.get("/exports/{package_id}/submission-pack")
+def get_submission_pack(
+    package_id: str,
+    db: Annotated[Session, Depends(get_db_session)],
+) -> dict:
+    try:
+        return ExportPackageService(db).build_submission_pack(package_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc

@@ -55,8 +55,13 @@ This repository contains a production-credible backend foundation for a Research
 - `GET /memory/blocks/{block_id}`
 - `PUT /memory/blocks/{block_id}`
 - `POST /memory/retrieval/preview`
-- `POST /memory/export/preview`
-- `POST /memory/export/packages`
+- `POST /memory/exports/generate`
+- `GET /memory/exports`
+- `GET /memory/exports/{package_id}`
+- `POST /memory/exports/{package_id}/transition`
+- `GET /memory/exports/{package_id}/artifacts`
+- `GET /memory/exports/artifacts/{artifact_id}/download`
+- `GET /memory/exports/{package_id}/submission-pack`
 - `GET /ui`
 
 ## Repository layout
@@ -93,3 +98,16 @@ This repository contains a production-credible backend foundation for a Research
 - Provider calls are executed via registered adapters (`mock-local` and optional `openai-compatible`) with policy-driven routing.
 - Runtime execution is persisted as execution runs/jobs/traces and supports retry, fallback reroute, and pause/resume.
 - API submission and execution are separated through a DB-backed background job queue (`execution_jobs`).
+
+
+## Institutional memory and dashboard notes
+- Institutional memory stores canonical documents, chunks, and reusable evidence blocks with approval status/provenance.
+- Retrieval is contract-driven and backend-agnostic (currently lightweight keyword scoring).
+- Context assembly endpoints provide grounded context packs for concept notes, section drafting, and decomposition.
+- `/ui` is an internal operator dashboard for visual inspection; dashboard data is served from real backend endpoints (`/dashboard/*`).
+
+
+## Export and submission-pack notes
+- Export packages are lifecycle-managed (`draft`, `ready_for_review`, `approved`, `superseded`, `archived`, `failed`) and require explicit approval transitions.
+- Markdown renderer foundation produces human-editable artifacts (proposal narrative, reviewer log, evidence summary, decomposition summary, manifest).
+- Submission pack endpoint assembles artifact metadata + checksums without external portal submission.

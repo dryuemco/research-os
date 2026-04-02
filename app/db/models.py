@@ -22,6 +22,7 @@ from app.domain.execution_orchestrator.runtime_models import (  # noqa: F401
 from app.domain.institutional_memory.models import (  # noqa: F401
     CapabilityProfile,
     DocumentSource,
+    ExportArtifact,
     ExportPackage,
     MemoryChunk,
     MemoryDocument,

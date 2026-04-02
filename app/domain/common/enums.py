@@ -139,7 +139,18 @@ class MemoryCategory(StrEnum):
 
 
 class ExportPackageStatus(StrEnum):
-    GENERATED = "generated"
-    REVIEW_REQUIRED = "review_required"
+    DRAFT = "draft"
+    READY_FOR_REVIEW = "ready_for_review"
     APPROVED = "approved"
+    SUPERSEDED = "superseded"
+    ARCHIVED = "archived"
+    FAILED = "failed"
+
+
+class ExportArtifactType(StrEnum):
+    PROPOSAL_NARRATIVE = "proposal_narrative"
+    REVIEWER_LOG = "reviewer_log"
+    REUSABLE_EVIDENCE = "reusable_evidence"
+    DECOMPOSITION_SUMMARY = "decomposition_summary"
+    EXPORT_MANIFEST = "export_manifest"
 
