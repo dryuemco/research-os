@@ -6,6 +6,9 @@ install:
 run:
 	uvicorn app.main:app --reload
 
+run-api:
+	uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
 test:
 	pytest
 
@@ -26,3 +29,6 @@ seed-dev:
 
 run-worker:
 	$(PYTHON) -m app.scripts.run_execution_worker
+
+check:
+	ruff check . && pytest -q

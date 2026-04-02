@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     retrieval_backend: str = Field(default="lexical", alias="RETRIEVAL_BACKEND")
     artifact_storage_backend: str = Field(default="local_fs", alias="ARTIFACT_STORAGE_BACKEND")
     artifact_storage_root: str = Field(default="./artifacts", alias="ARTIFACT_STORAGE_ROOT")
+    artifact_download_secret: str = Field(
+        default="dev-artifact-download-secret",
+        alias="ARTIFACT_DOWNLOAD_SECRET",
+    )
+    artifact_download_ttl_seconds: int = Field(default=300, alias="ARTIFACT_DOWNLOAD_TTL_SECONDS")
 
 
 @lru_cache

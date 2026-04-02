@@ -137,7 +137,8 @@ def ui_export_detail(package_id: str, db: Annotated[Session, Depends(get_db_sess
         return _html_page("Export not found", "<h2>Export package not found</h2>")
 
     artifact_rows = "".join(
-        f"<tr><td>{a.artifact_type.value}</td><td>{a.file_name}</td>"
+        f"<tr><td>{a.artifact_type.value}</td><td>{a.artifact_format.value}</td>"
+        f"<td>{a.file_name}</td><td>{a.size_bytes} bytes</td>"
         f"<td><a href='/memory/exports/artifacts/{a.id}/download'>download</a></td></tr>"
         for a in artifacts
     )
@@ -156,7 +157,7 @@ def ui_export_detail(package_id: str, db: Annotated[Session, Depends(get_db_sess
         f"{package.proposal_id}</a></p>"
         f"{approve_action}<h3>Artifacts</h3>"
         "<table border='1' cellpadding='8' cellspacing='0'>"
-        "<tr><th>Type</th><th>File</th><th>Link</th></tr>"
+        "<tr><th>Type</th><th>Format</th><th>File</th><th>Size</th><th>Link</th></tr>"
         f"{artifact_rows}</table>"
         f"<p><a href='/memory/exports/{package.id}/submission-pack'>"
         "View submission-pack JSON</a></p>"

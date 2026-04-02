@@ -27,6 +27,23 @@ services:
       - "8000:8000"
     volumes:
       - .:/workspace
+      - artifacts_data:/workspace/artifacts
+    working_dir: /workspace
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.example
+    command: python -m app.scripts.run_execution_worker
+    volumes:
+      - .:/workspace
+      - artifacts_data:/workspace/artifacts
     working_dir: /workspace
     depends_on:
       db:
@@ -49,3 +66,4 @@ services:
 
 volumes:
   postgres_data:
+  artifacts_data:

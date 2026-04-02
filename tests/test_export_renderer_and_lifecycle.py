@@ -130,7 +130,7 @@ def test_submission_pack_contains_manifest_and_artifacts(db_session):
     pack = service.build_submission_pack(package.id)
     assert pack["proposal_id"] == proposal.id
     assert pack["artifacts"]
-    assert any(a["artifact_type"] == "export_manifest" for a in pack["artifacts"])
+    assert any(a["artifact_type"] == "delivery_manifest" for a in pack["artifacts"])
 
 
 def test_read_artifact_content_falls_back_to_db_text_when_storage_file_missing(db_session):
@@ -149,5 +149,5 @@ def test_read_artifact_content_falls_back_to_db_text_when_storage_file_missing(d
     db_session.add(artifact)
     db_session.commit()
 
-    content = service.read_artifact_content(artifact.id)
-    assert "Exportable Proposal" in content
+    _, content = service.read_artifact_bytes(artifact.id)
+    assert b"Exportable Proposal" in content

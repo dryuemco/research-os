@@ -153,6 +153,14 @@ class ExportArtifactType(StrEnum):
     REUSABLE_EVIDENCE = "reusable_evidence"
     DECOMPOSITION_SUMMARY = "decomposition_summary"
     EXPORT_MANIFEST = "export_manifest"
+    DELIVERY_MANIFEST = "delivery_manifest"
+
+
+class ExportArtifactFormat(StrEnum):
+    MARKDOWN = "markdown"
+    DOCX = "docx"
+    PDF = "pdf"
+    JSON = "json"
 
 
 
@@ -169,7 +177,7 @@ class Permission(StrEnum):
     PROPOSAL_STATE_TRANSITION = "proposal_state_transition"
     EXPORT_GENERATE = "export_generate"
     EXPORT_APPROVE = "export_approve"
+    EXPORT_DOWNLOAD = "export_download"
     MEMORY_BLOCK_MUTATE = "memory_block_mutate"
     RUNTIME_CONTROL = "runtime_control"
     VIEW_SENSITIVE = "view_sensitive"
-

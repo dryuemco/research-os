@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -24,8 +24,16 @@ from app.schemas.memory import (
     ReusableBlockResponse,
     ReusableBlockUpdate,
 )
-from app.security.auth import require_permissions
+from app.security.auth import CurrentUser, require_permissions
 from app.services.context_assembly_service import ContextAssemblyService
+from app.services.export_errors import (
+    ArtifactAccessDeniedError,
+    ArtifactIntegrityError,
+    ArtifactNotFoundError,
+    ArtifactStorageError,
+    RendererSelectionError,
+    RenderExecutionError,
+)
 from app.services.export_package_service import ExportPackageService, InvalidExportTransitionError
 from app.services.memory_service import MemoryService
 from app.services.retrieval_service import RetrievalService
@@ -51,7 +59,7 @@ def create_document(
     try:
         document = MemoryService(db).create_document(request)
         db.commit()
-    except ValueError as exc:
+    except (ValueError, RendererSelectionError, RenderExecutionError, ArtifactStorageError) as exc:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return MemoryDocumentResponse.model_validate(document)
@@ -196,21 +204,59 @@ def transition_export_package(
 def list_export_artifacts(
     package_id: str,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.EXPORT_DOWNLOAD))],
 ) -> list[ExportArtifactResponse]:
     items = ExportPackageService(db).list_artifacts(package_id)
     return [ExportArtifactResponse.model_validate(item) for item in items]
 
 
-@router.get("/exports/artifacts/{artifact_id}/download", response_class=PlainTextResponse)
+@router.post("/exports/artifacts/{artifact_id}/download-token")
+def create_download_token(
+    artifact_id: str,
+    db: Annotated[Session, Depends(get_db_session)],
+    current_user: Annotated[CurrentUser, Depends(require_permissions(Permission.EXPORT_DOWNLOAD))],
+) -> dict:
+    try:
+        token = ExportPackageService(db).create_download_token(
+            artifact_id=artifact_id,
+            actor_id=current_user.user_id,
+        )
+    except ArtifactNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return {"token": token}
+
+
+@router.get("/exports/artifacts/{artifact_id}/download")
 def download_export_artifact(
     artifact_id: str,
     db: Annotated[Session, Depends(get_db_session)],
-) -> str:
+    current_user: Annotated[CurrentUser, Depends(require_permissions(Permission.EXPORT_DOWNLOAD))],
+    token: str | None = Query(default=None),
+) -> Response:
+    service = ExportPackageService(db)
     try:
-        content = ExportPackageService(db).read_artifact_content(artifact_id)
-    except ValueError as exc:
+        if token:
+            service.validate_download_token(
+                token, actor_id=current_user.user_id, artifact_id=artifact_id
+            )
+        artifact, payload = service.read_artifact_bytes(artifact_id)
+        service.audit_download(artifact, actor_id=current_user.user_id)
+        db.commit()
+    except ArtifactNotFoundError as exc:
+        db.rollback()
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    return content
+    except ArtifactAccessDeniedError as exc:
+        db.rollback()
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except (ArtifactStorageError, ArtifactIntegrityError) as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    return Response(
+        content=payload,
+        media_type=artifact.media_type,
+        headers={"Content-Disposition": f'attachment; filename="{artifact.file_name}"'},
+    )
 
 
 @router.get("/exports/{package_id}/submission-pack")

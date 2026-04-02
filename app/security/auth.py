@@ -27,17 +27,24 @@ ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.PROPOSAL_STATE_TRANSITION,
         Permission.EXPORT_GENERATE,
         Permission.EXPORT_APPROVE,
+        Permission.EXPORT_DOWNLOAD,
         Permission.VIEW_SENSITIVE,
     },
     UserRole.GRANT_WRITER: {
         Permission.EXPORT_GENERATE,
+        Permission.EXPORT_DOWNLOAD,
         Permission.MEMORY_BLOCK_MUTATE,
         Permission.PROPOSAL_STATE_TRANSITION,
     },
-    UserRole.REVIEWER: {Permission.EXPORT_APPROVE, Permission.VIEW_SENSITIVE},
+    UserRole.REVIEWER: {
+        Permission.EXPORT_APPROVE,
+        Permission.EXPORT_DOWNLOAD,
+        Permission.VIEW_SENSITIVE,
+    },
     UserRole.TECHNICAL_LEAD: {
         Permission.RUNTIME_CONTROL,
         Permission.EXPORT_GENERATE,
+        Permission.EXPORT_DOWNLOAD,
         Permission.VIEW_SENSITIVE,
     },
 }

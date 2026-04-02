@@ -6,6 +6,7 @@ from sqlalchemy.types import JSON
 from app.db.base import Base
 from app.domain.common.enums import (
     ApprovalStatus,
+    ExportArtifactFormat,
     ExportArtifactType,
     ExportPackageStatus,
     MemoryCategory,
@@ -113,9 +114,14 @@ class ExportArtifact(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("export_packages.id", ondelete="CASCADE"), index=True
     )
     artifact_type: Mapped[ExportArtifactType] = mapped_column(Enum(ExportArtifactType), index=True)
+    artifact_format: Mapped[ExportArtifactFormat] = mapped_column(
+        Enum(ExportArtifactFormat), default=ExportArtifactFormat.MARKDOWN, index=True
+    )
     file_name: Mapped[str] = mapped_column(String(255))
     media_type: Mapped[str] = mapped_column(String(128), default="text/markdown")
     content_text: Mapped[str] = mapped_column(Text)
+    content_base64: Mapped[str | None] = mapped_column(Text, nullable=True)
+    size_bytes: Mapped[int] = mapped_column(Integer, default=0)
     checksum: Mapped[str] = mapped_column(String(128), index=True)
     storage_backend: Mapped[str] = mapped_column(String(64), default="db_fallback")
     storage_locator: Mapped[str | None] = mapped_column(String(1024), nullable=True)

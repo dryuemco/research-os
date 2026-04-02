@@ -60,6 +60,7 @@ This repository contains a production-credible backend foundation for a Research
 - `GET /memory/exports/{package_id}`
 - `POST /memory/exports/{package_id}/transition`
 - `GET /memory/exports/{package_id}/artifacts`
+- `POST /memory/exports/artifacts/{artifact_id}/download-token`
 - `GET /memory/exports/artifacts/{artifact_id}/download`
 - `GET /memory/exports/{package_id}/submission-pack`
 - `GET /ui`
@@ -109,11 +110,19 @@ This repository contains a production-credible backend foundation for a Research
 
 ## Export and submission-pack notes
 - Export packages are lifecycle-managed (`draft`, `ready_for_review`, `approved`, `superseded`, `archived`, `failed`) and require explicit approval transitions.
-- Markdown renderer foundation produces human-editable artifacts (proposal narrative, reviewer log, evidence summary, decomposition summary, manifest).
+- Renderer architecture is policy-driven and format-aware (`markdown` and real `docx` support in this slice).
+- DOCX artifacts are generated as real OOXML `.docx` files (zip package with WordprocessingML), not extension-only placeholders.
 - Submission pack endpoint assembles artifact metadata + checksums without external portal submission.
+- Artifact delivery supports integrity verification, short-lived download tokens, and audited download events.
 
 
 ## Pilot auth and hardening notes
 - Protected mutating/sensitive routes require `X-Internal-Api-Key` and `X-User-Id` headers.
 - Role-based permission guards are enforced for export approval, runtime control, memory block mutation, and opportunity approval actions.
 - Retrieval backend and artifact storage are pluggable via `RETRIEVAL_BACKEND` and `ARTIFACT_STORAGE_BACKEND` settings.
+- Export download requires `EXPORT_DOWNLOAD` permission; use `/memory/exports/artifacts/{artifact_id}/download-token` for short-lived tokenized delivery.
+
+## Pilot deployment notes (export delivery)
+- Ensure `ARTIFACT_STORAGE_ROOT` exists and is writable by API + worker containers.
+- Configure `ARTIFACT_DOWNLOAD_SECRET` per environment and rotate between pilot phases.
+- Use `make run-api`, `make run-worker`, `make migrate`, and `make check` for repeatable pilot operations.

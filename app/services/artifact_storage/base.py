@@ -8,6 +8,7 @@ class StoredArtifactRef:
     backend: str
     locator: str
     checksum: str
+    size_bytes: int
 
 
 class ArtifactStorage:
@@ -17,10 +18,13 @@ class ArtifactStorage:
         self,
         package_id: str,
         file_name: str,
-        content_text: str,
+        content_bytes: bytes,
         checksum: str,
     ) -> StoredArtifactRef:
         raise NotImplementedError
 
-    def read(self, locator: str) -> str:
+    def read_bytes(self, locator: str) -> bytes:
+        raise NotImplementedError
+
+    def verify(self, locator: str, expected_checksum: str) -> bool:
         raise NotImplementedError

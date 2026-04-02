@@ -10,11 +10,19 @@ class DatabaseFallbackArtifactStorage(ArtifactStorage):
         self,
         package_id: str,
         file_name: str,
-        content_text: str,
+        content_bytes: bytes,
         checksum: str,
     ) -> StoredArtifactRef:
         locator = f"db://{package_id}/{file_name}"
-        return StoredArtifactRef(backend=self.backend_name, locator=locator, checksum=checksum)
+        return StoredArtifactRef(
+            backend=self.backend_name,
+            locator=locator,
+            checksum=checksum,
+            size_bytes=len(content_bytes),
+        )
 
-    def read(self, locator: str) -> str:
+    def read_bytes(self, locator: str) -> bytes:
         raise ValueError("DB fallback artifacts should be read from persisted content_text")
+
+    def verify(self, locator: str, expected_checksum: str) -> bool:
+        return True

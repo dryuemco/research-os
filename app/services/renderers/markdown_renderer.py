@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.domain.common.enums import ExportArtifactType
+from app.domain.common.enums import ExportArtifactFormat, ExportArtifactType
 from app.domain.execution_orchestrator.models import EngineeringTicket, ExecutionPlan
 from app.domain.institutional_memory.models import ReusableEvidenceBlock
 from app.domain.proposal_factory.models import (
@@ -12,11 +12,16 @@ from app.domain.proposal_factory.models import (
     ReviewComment,
     ReviewRound,
 )
-from app.schemas.export import RenderedArtifact, RenderRequest, RenderResult
+from app.schemas.export import RenderedArtifact, RendererName, RenderRequest, RenderResult
+from app.services.renderers.base import RendererCapabilities
 
 
 class MarkdownExportRenderer:
-    renderer_name = "markdown-v1"
+    renderer_name = RendererName.MARKDOWN_V1
+    capabilities = RendererCapabilities(
+        renderer_name=renderer_name,
+        supports_formats=[ExportArtifactFormat.MARKDOWN, ExportArtifactFormat.JSON],
+    )
 
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -35,16 +40,15 @@ class MarkdownExportRenderer:
         narrative = "\n".join(section_lines)
 
         artifacts: list[RenderedArtifact] = [
-            RenderedArtifact(
+            self._artifact(
                 artifact_type=ExportArtifactType.PROPOSAL_NARRATIVE,
                 file_name="proposal_narrative.md",
-                media_type="text/markdown",
                 content_text=narrative,
                 metadata_json={"section_count": len(sections)},
             )
         ]
 
-        if request.include_reviewer_logs:
+        if request.render_policy.include_reviewer_logs:
             rounds = self.db.scalars(
                 select(ReviewRound).where(ReviewRound.proposal_id == proposal.id)
             ).all()
@@ -59,16 +63,15 @@ class MarkdownExportRenderer:
                     f"- [{comment.severity}] {comment.reviewer_role}: {comment.comment_text}"
                 )
             artifacts.append(
-                RenderedArtifact(
+                self._artifact(
                     artifact_type=ExportArtifactType.REVIEWER_LOG,
                     file_name="reviewer_log.md",
-                    media_type="text/markdown",
                     content_text="\n".join(comment_lines),
                     metadata_json={"comment_count": len(comments)},
                 )
             )
 
-        if request.include_reusable_evidence:
+        if request.render_policy.include_reusable_evidence:
             blocks = self.db.scalars(select(ReusableEvidenceBlock)).all()
             evidence_lines = ["# Reusable Evidence\n"]
             for block in blocks:
@@ -76,16 +79,15 @@ class MarkdownExportRenderer:
                     f"## {block.title}\nStatus: {block.approval_status.value}\n{block.body_text}\n"
                 )
             artifacts.append(
-                RenderedArtifact(
+                self._artifact(
                     artifact_type=ExportArtifactType.REUSABLE_EVIDENCE,
                     file_name="reusable_evidence.md",
-                    media_type="text/markdown",
                     content_text="\n".join(evidence_lines),
                     metadata_json={"block_count": len(blocks)},
                 )
             )
 
-        if request.include_decomposition:
+        if request.render_policy.include_decomposition:
             plan = self.db.scalar(
                 select(ExecutionPlan).where(ExecutionPlan.proposal_id == proposal.id)
             )
@@ -100,13 +102,33 @@ class MarkdownExportRenderer:
             for ticket in tickets:
                 task_lines.append(f"- {ticket.task_code}: {ticket.title}")
             artifacts.append(
-                RenderedArtifact(
+                self._artifact(
                     artifact_type=ExportArtifactType.DECOMPOSITION_SUMMARY,
                     file_name="decomposition_summary.md",
-                    media_type="text/markdown",
                     content_text="\n".join(task_lines),
                     metadata_json={"ticket_count": len(tickets)},
                 )
             )
 
-        return RenderResult(artifacts=artifacts, unresolved_items=[])
+        return RenderResult(
+            renderer_name=self.renderer_name,
+            artifacts=artifacts,
+            unresolved_items=[],
+        )
+
+    def _artifact(
+        self,
+        artifact_type: ExportArtifactType,
+        file_name: str,
+        content_text: str,
+        metadata_json: dict,
+    ) -> RenderedArtifact:
+        return RenderedArtifact(
+            artifact_type=artifact_type,
+            artifact_format=ExportArtifactFormat.MARKDOWN,
+            file_name=file_name,
+            media_type="text/markdown",
+            content_bytes=content_text.encode("utf-8"),
+            content_text=content_text,
+            metadata_json=metadata_json,
+        )
