@@ -23,3 +23,6 @@ makemigration:
 
 seed-dev:
 	$(PYTHON) -m app.scripts.seed_dev_data
+
+run-worker:
+	$(PYTHON) -m app.scripts.run_execution_worker

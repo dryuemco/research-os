@@ -86,3 +86,35 @@ class ProviderStatus(StrEnum):
     ACTIVE = "active"
     DEGRADED = "degraded"
     DISABLED = "disabled"
+
+class ExecutionRunStatus(StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    PAUSED = "paused"
+    WAITING_RETRY = "waiting_retry"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+
+
+class ExecutionJobStatus(StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    DONE = "done"
+    FAILED = "failed"
+
+
+class ProviderErrorType(StrEnum):
+    PROVIDER_UNAVAILABLE = "provider_unavailable"
+    QUOTA_EXCEEDED = "quota_exceeded"
+    TIMEOUT = "timeout"
+    INVALID_RESPONSE = "invalid_response"
+    VALIDATION_FAILURE = "validation_failure"
+    POLICY_REJECTION = "policy_rejection"
+    AUTHENTICATION = "authentication"
+    UNKNOWN = "unknown"
+
+
+class ProviderTraceStatus(StrEnum):
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    REROUTED = "rerouted"

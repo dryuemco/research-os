@@ -14,6 +14,11 @@ from app.domain.execution_orchestrator.models import (  # noqa: F401
     ValidationActivity,
     WorkPackage,
 )
+from app.domain.execution_orchestrator.runtime_models import (  # noqa: F401
+    ExecutionJob,
+    ExecutionRun,
+    ProviderExecutionTrace,
+)
 from app.domain.opportunity_discovery.models import (  # noqa: F401
     InterestProfile,
     MatchResult,

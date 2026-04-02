@@ -33,6 +33,13 @@ This repository contains a production-credible backend foundation for a Research
 - `POST /decomposition/{plan_id}/handoff`
 - `POST /decomposition/{plan_id}/decision`
 - `GET /decomposition/work-unit/{coding_work_unit_id}/routing-intent`
+- `POST /execution-runtime/tasks`
+- `GET /execution-runtime/runs/{run_id}`
+- `POST /execution-runtime/runs/{run_id}/retry`
+- `POST /execution-runtime/runs/{run_id}/resume`
+- `POST /execution-runtime/routing-quota-preview`
+- `GET /execution-runtime/traces`
+- `POST /execution-runtime/jobs/process-next`
 
 ## Repository layout
 - `app/api` - API routes and router wiring
@@ -63,3 +70,8 @@ This repository contains a production-credible backend foundation for a Research
 - Provider routing is configuration-driven to reduce architectural drift.
 - Model routing and quota decisions are policy-driven and auditable.
 - Every persisted opportunity and proposal state transition emits an audit event.
+
+## Execution runtime notes
+- Provider calls are executed via registered adapters (`mock-local` and optional `openai-compatible`) with policy-driven routing.
+- Runtime execution is persisted as execution runs/jobs/traces and supports retry, fallback reroute, and pause/resume.
+- API submission and execution are separated through a DB-backed background job queue (`execution_jobs`).
