@@ -1,0 +1,21 @@
+{
+  "source_name": "funding_call_scaffold",
+  "records": [
+    {
+      "source_record_id": "dev-call-001",
+      "payload": {
+        "external_id": "dev-call-001",
+        "source_program": "horizon",
+        "source_url": "https://example.org/dev-call-001",
+        "title": "AI for Climate Adaptation",
+        "summary": "Develop AI-supported adaptation strategies for urban resilience.",
+        "full_text": "Scope includes modeling, deployment, ethics, and measurable impact KPIs.",
+        "deadline_at": "2026-07-31T23:59:59+00:00",
+        "budget_total": 2500000,
+        "currency": "EUR",
+        "eligibility_notes": ["EU entities", "Consortium required"],
+        "expected_outcomes": ["Pilot deployments", "Policy-ready evidence"]
+      }
+    }
+  ]
+}
