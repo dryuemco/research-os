@@ -33,6 +33,31 @@ This repository contains a production-credible backend foundation for a Research
 - `POST /decomposition/{plan_id}/handoff`
 - `POST /decomposition/{plan_id}/decision`
 - `GET /decomposition/work-unit/{coding_work_unit_id}/routing-intent`
+- `POST /execution-runtime/tasks`
+- `GET /execution-runtime/runs/{run_id}`
+- `POST /execution-runtime/runs/{run_id}/retry`
+- `POST /execution-runtime/runs/{run_id}/resume`
+- `POST /execution-runtime/routing-quota-preview`
+- `GET /execution-runtime/traces`
+- `POST /execution-runtime/jobs/process-next`
+- `GET /dashboard/summary`
+- `GET /dashboard/opportunities`
+- `GET /dashboard/matches`
+- `GET /dashboard/proposals`
+- `GET /dashboard/decomposition`
+- `GET /dashboard/runs`
+- `GET /dashboard/audit`
+- `POST /memory/sources`
+- `POST /memory/documents`
+- `GET /memory/documents`
+- `POST /memory/blocks`
+- `GET /memory/blocks`
+- `GET /memory/blocks/{block_id}`
+- `PUT /memory/blocks/{block_id}`
+- `POST /memory/retrieval/preview`
+- `POST /memory/export/preview`
+- `POST /memory/export/packages`
+- `GET /ui`
 
 ## Repository layout
 - `app/api` - API routes and router wiring
@@ -63,3 +88,15 @@ This repository contains a production-credible backend foundation for a Research
 - Provider routing is configuration-driven to reduce architectural drift.
 - Model routing and quota decisions are policy-driven and auditable.
 - Every persisted opportunity and proposal state transition emits an audit event.
+
+## Execution runtime notes
+- Provider calls are executed via registered adapters (`mock-local` and optional `openai-compatible`) with policy-driven routing.
+- Runtime execution is persisted as execution runs/jobs/traces and supports retry, fallback reroute, and pause/resume.
+- API submission and execution are separated through a DB-backed background job queue (`execution_jobs`).
+
+
+## Institutional memory and dashboard notes
+- Institutional memory stores canonical documents, chunks, and reusable evidence blocks with approval status/provenance.
+- Retrieval is contract-driven and backend-agnostic (currently lightweight keyword scoring).
+- Context assembly endpoints provide grounded context packs for concept notes, section drafting, and decomposition.
+- `/ui` is an internal operator dashboard for visual inspection; dashboard data is served from real backend endpoints (`/dashboard/*`).

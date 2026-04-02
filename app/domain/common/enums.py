@@ -86,3 +86,60 @@ class ProviderStatus(StrEnum):
     ACTIVE = "active"
     DEGRADED = "degraded"
     DISABLED = "disabled"
+
+class ExecutionRunStatus(StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    PAUSED = "paused"
+    WAITING_RETRY = "waiting_retry"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+
+
+class ExecutionJobStatus(StrEnum):
+    QUEUED = "queued"
+    RUNNING = "running"
+    DONE = "done"
+    FAILED = "failed"
+
+
+class ProviderErrorType(StrEnum):
+    PROVIDER_UNAVAILABLE = "provider_unavailable"
+    QUOTA_EXCEEDED = "quota_exceeded"
+    TIMEOUT = "timeout"
+    INVALID_RESPONSE = "invalid_response"
+    VALIDATION_FAILURE = "validation_failure"
+    POLICY_REJECTION = "policy_rejection"
+    AUTHENTICATION = "authentication"
+    UNKNOWN = "unknown"
+
+
+class ProviderTraceStatus(StrEnum):
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    REROUTED = "rerouted"
+
+
+class ApprovalStatus(StrEnum):
+    DRAFT = "draft"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class MemoryCategory(StrEnum):
+    ORGANIZATION_PROFILE = "organization_profile"
+    INFRASTRUCTURE = "infrastructure"
+    STAFF_EXPERTISE = "staff_expertise"
+    PRIOR_PROJECT = "prior_project"
+    PUBLICATION_EVIDENCE = "publication_evidence"
+    IMPACT_EVIDENCE = "impact_evidence"
+    METHODOLOGY_SNIPPET = "methodology_snippet"
+    PARTNER_NOTE = "partner_note"
+    REUSABLE_PROPOSAL_BLOCK = "reusable_proposal_block"
+
+
+class ExportPackageStatus(StrEnum):
+    GENERATED = "generated"
+    REVIEW_REQUIRED = "review_required"
+    APPROVED = "approved"
+
