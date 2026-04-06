@@ -6,6 +6,7 @@ from app.domain.common.enums import OperationalJobStatus
 from app.domain.operations.models import OperationalJobRun
 from app.services.operational_loop_service import OperationalLoopService
 from app.services.opportunity_adapters import DEFAULT_ADAPTERS
+from app.services.opportunity_adapters.base import AdapterFetchError
 from app.services.opportunity_adapters.eu_funding_tenders import EUFundingTendersAdapter
 
 
@@ -186,3 +187,28 @@ def test_eu_funding_adapter_follows_redirect_for_legacy_url():
 
     assert len(records) == 1
     assert records[0]['source_record_id'] == 'HORIZON-REDIRECT-001'
+
+
+@pytest.mark.parametrize(
+    ("status_code", "body", "expected_code"),
+    [
+        (403, "blocked by robots.txt", "robots_blocked"),
+        (401, "access denied", "unauthorized"),
+        (405, "Method Not Allowed", "endpoint_changed"),
+        (500, "upstream failure", "source_blocked"),
+    ],
+)
+def test_eu_funding_adapter_maps_block_and_endpoint_errors_to_diagnostics(
+    status_code, body, expected_code
+):
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(status_code, text=body)
+
+    adapter = EUFundingTendersAdapter(transport=httpx.MockTransport(handler))
+
+    with pytest.raises(AdapterFetchError) as exc_info:
+        adapter.fetch_records(programmes=["horizon"], limit=1)
+
+    assert exc_info.value.code == expected_code
+    assert exc_info.value.diagnostics["status_code"] == status_code
+    assert "final_url" in exc_info.value.diagnostics

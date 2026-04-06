@@ -21,6 +21,7 @@ from app.schemas.operations import (
 )
 from app.security.auth import get_internal_admin_user, require_permissions
 from app.services.demo_seed_service import DemoSeedService
+from app.services.opportunity_adapters.base import AdapterFetchError
 from app.services.notification_service import NotificationService
 from app.services.operational_loop_service import OperationalLoopService
 from app.services.opportunity_import_service import OpportunityImportService
@@ -31,6 +32,12 @@ router = APIRouter()
 
 def _db_error_payload(exc: Exception, *, default_code: str) -> dict:
     message = str(exc)
+    if isinstance(exc, AdapterFetchError):
+        return {
+            "error_code": exc.code,
+            "message": message,
+            "diagnostics": exc.diagnostics,
+        }
     if "UndefinedTable" in message or 'relation "' in message:
         return {
             "error_code": "database_schema_missing",

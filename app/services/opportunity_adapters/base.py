@@ -19,6 +19,13 @@ class AdapterNormalizationError(ValueError):
         self.code = code
 
 
+class AdapterFetchError(RuntimeError):
+    def __init__(self, code: str, message: str, diagnostics: dict | None = None) -> None:
+        super().__init__(message)
+        self.code = code
+        self.diagnostics = diagnostics or {}
+
+
 class OpportunitySourceAdapter(ABC):
     source_name: str
     capability: AdapterCapabilityMetadata

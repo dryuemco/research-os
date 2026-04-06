@@ -9,6 +9,7 @@ from app.core.config import get_settings
 from app.schemas.opportunity import OpportunityNormalized
 from app.services.opportunity_adapters.base import (
     AdapterCapabilityMetadata,
+    AdapterFetchError,
     AdapterNormalizationError,
     OpportunitySourceAdapter,
     SourceAdapterRecord,
@@ -83,11 +84,73 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
             client_args["transport"] = self._transport
 
         with httpx.Client(**client_args) as client:
-            response = client.get(url, params=params, headers=headers)
-            response.raise_for_status()
-            raw = response.json()
+            try:
+                response = client.get(url, params=params, headers=headers)
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                raise self._to_fetch_error(exc) from exc
+            except httpx.HTTPError as exc:
+                raise AdapterFetchError(
+                    code="source_blocked",
+                    message=f"EU Funding API request failed: {exc}",
+                    diagnostics={
+                        "category": "network_error",
+                        "method": "GET",
+                        "requested_url": str(exc.request.url) if exc.request else url,
+                    },
+                ) from exc
+
+            try:
+                raw = response.json()
+            except ValueError as exc:
+                raise AdapterFetchError(
+                    code="parsing_failure",
+                    message="EU Funding API returned a non-JSON payload",
+                    diagnostics={
+                        "category": "parsing_failure",
+                        "status_code": response.status_code,
+                        "final_url": str(response.url),
+                        "content_type": response.headers.get("content-type"),
+                    },
+                ) from exc
 
         return self._extract_records(raw)
+
+
+    def _to_fetch_error(self, exc: httpx.HTTPStatusError) -> AdapterFetchError:
+        response = exc.response
+        request = exc.request
+        body_preview = (response.text or "")[:300].lower()
+        status_code = response.status_code
+
+        if status_code in {401, 403}:
+            if "robots" in body_preview:
+                code = "robots_blocked"
+                category = "robots_blocked"
+            else:
+                code = "unauthorized"
+                category = "unauthorized"
+        elif status_code in {301, 302, 307, 308, 404, 405, 410}:
+            code = "endpoint_changed"
+            category = "endpoint_changed"
+        else:
+            code = "source_blocked"
+            category = "source_blocked"
+
+        return AdapterFetchError(
+            code=code,
+            message=f"EU Funding API returned HTTP {status_code}",
+            diagnostics={
+                "category": category,
+                "status_code": status_code,
+                "method": request.method if request else "GET",
+                "requested_url": str(request.url) if request else None,
+                "final_url": str(response.url),
+                "redirected": bool(response.history),
+                "redirect_count": len(response.history),
+                "location": response.headers.get("location"),
+            },
+        )
 
     def _build_query(self, *, programmes: list[str], include_closed: bool) -> str:
         normalized = [item.strip().lower() for item in programmes if item.strip()]
