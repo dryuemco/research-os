@@ -147,3 +147,42 @@ def test_live_ingestion_empty_and_error_paths_are_tracked(db_session, monkeypatc
     failed_runs = [run for run in runs if run.status == OperationalJobStatus.FAILED]
     assert failed_runs
     assert failed_runs[-1].result_summary["failed_count"] == 1
+
+
+def test_eu_funding_adapter_follows_redirect_for_legacy_url():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith('/data/topicSearch'):
+            return httpx.Response(
+                301,
+                headers={
+                    'location': 'https://ec.europa.eu/info/funding-tenders/opportunities/data-api/topic/search'
+                },
+            )
+        if request.url.path.endswith('/data-api/topic/search'):
+            return httpx.Response(
+                200,
+                json={
+                    'results': [
+                        {
+                            'identifier': 'HORIZON-REDIRECT-001',
+                            'title': 'Redirected topic',
+                            'description': 'ok',
+                            'programme': 'Horizon Europe',
+                            'status': 'OPEN',
+                        }
+                    ]
+                },
+            )
+        return httpx.Response(404)
+
+    adapter = EUFundingTendersAdapter(transport=httpx.MockTransport(handler))
+    records = adapter._fetch_live_payload(
+        url='https://ec.europa.eu/info/funding-tenders/opportunities/data/topicSearch',
+        timeout_seconds=10,
+        programmes=['horizon'],
+        limit=5,
+        include_closed=False,
+    )
+
+    assert len(records) == 1
+    assert records[0]['source_record_id'] == 'HORIZON-REDIRECT-001'
