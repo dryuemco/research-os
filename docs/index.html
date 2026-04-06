@@ -3,119 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RPOS Static Operator Dashboard</title>
+    <title>RPOS Operator Dashboard</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <header class="topbar">
       <div>
-        <h1>RPOS Static Operator Dashboard</h1>
-        <p class="muted">GitHub Pages static UI powered by live Render backend APIs.</p>
+        <h1>RPOS Operator Dashboard</h1>
+        <p class="muted">Static GitHub Pages frontend consuming live Render APIs.</p>
       </div>
       <div class="topbar-actions">
-        <button id="refresh-all" type="button">Refresh</button>
+        <button id="refresh-current" type="button">Refresh Current View</button>
         <a id="ui-link" href="#" target="_blank" rel="noreferrer">Open Internal UI</a>
         <a id="docs-link" href="#" target="_blank" rel="noreferrer">Open API Docs</a>
         <a id="health-link" href="#" target="_blank" rel="noreferrer">Check Health</a>
       </div>
     </header>
 
-    <div class="layout">
-      <nav class="sidebar">
-        <a href="#overview">Overview</a>
-        <a href="#opportunities">Opportunities</a>
-        <a href="#matches">Matches</a>
-        <a href="#notifications">Notifications</a>
-        <a href="#operations">Operational Runs</a>
-        <a href="#proposals">Proposal Workspaces</a>
-        <a href="#exports">Export Packages</a>
-        <a href="#intelligence">Intelligence Signals</a>
-      </nav>
+    <div id="connection-banner" class="banner hidden"></div>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <nav>
+          <a class="nav-link active" href="#overview" data-page="overview">Overview</a>
+          <a class="nav-link" href="#health" data-page="health">System Health</a>
+          <a class="nav-link" href="#opportunities" data-page="opportunities">Opportunities</a>
+          <a class="nav-link" href="#matches" data-page="matches">Matches</a>
+          <a class="nav-link" href="#notifications" data-page="notifications">Notifications</a>
+          <a class="nav-link" href="#operations" data-page="operations">Operational Runs</a>
+          <a class="nav-link" href="#proposals" data-page="proposals">Proposal Workspaces</a>
+          <a class="nav-link" href="#exports" data-page="exports">Export Packages</a>
+          <a class="nav-link" href="#intelligence" data-page="intelligence">Intelligence</a>
+        </nav>
+      </aside>
 
       <main>
-        <section class="panel" id="overview">
-          <h2>Overview</h2>
-          <p id="backend-label" class="muted"></p>
-          <p id="connectivity" class="muted">Checking backend connectivity...</p>
-          <div id="summary-grid" class="summary-grid"></div>
-        </section>
-
-        <section class="panel" id="opportunities">
-          <h2>Opportunities</h2>
-          <div id="opportunities-state" class="state"></div>
-          <div id="opportunities-table"></div>
-        </section>
-
-        <section class="panel" id="matches">
-          <h2>Matches</h2>
-          <div id="matches-state" class="state"></div>
-          <div id="matches-table"></div>
-        </section>
-
-        <section class="panel" id="notifications">
-          <h2>Notifications</h2>
-          <div id="notifications-state" class="state"></div>
-          <div id="notifications-table"></div>
-        </section>
-
-        <section class="panel" id="operations">
-          <h2>Operational Runs</h2>
-          <div id="operations-state" class="state"></div>
-          <div id="operations-table"></div>
-        </section>
-
-        <section class="panel" id="proposals">
-          <h2>Proposal Workspace Summary</h2>
-          <div id="proposals-state" class="state"></div>
-          <div id="proposals-table"></div>
-        </section>
-
-        <section class="panel" id="exports">
-          <h2>Export Package Summary</h2>
-          <div id="exports-state" class="state"></div>
-          <div id="exports-table"></div>
-        </section>
-
-        <section class="panel" id="intelligence">
-          <h2>Intelligence Signals</h2>
-          <div class="stack">
-            <div>
-              <h3>Retrieval Backends</h3>
-              <div id="retrieval-backends-state" class="state"></div>
-              <pre id="retrieval-backends" class="box"></pre>
-            </div>
-            <div>
-              <h3>Retrieval Preview</h3>
-              <div class="inline-actions">
-                <input id="retrieval-query" type="text" value="proposal quality evidence" />
-                <button id="retrieval-run" type="button">Run Retrieval</button>
-              </div>
-              <div id="retrieval-state" class="state"></div>
-              <pre id="retrieval-output" class="box"></pre>
-            </div>
-            <div>
-              <h3>Partner Intelligence</h3>
-              <div id="partners-state" class="state"></div>
-              <div id="partners-table"></div>
-              <p class="muted">Fit preview uses the first available partner as a lightweight live probe.</p>
-              <div id="partner-fit-state" class="state"></div>
-              <pre id="partner-fit-output" class="box"></pre>
-            </div>
-            <div>
-              <h3>Proposal Quality Summary</h3>
-              <div class="inline-actions">
-                <input id="proposal-id" type="text" placeholder="Enter proposal ID" />
-                <button id="proposal-quality-run" type="button">Fetch Quality</button>
-              </div>
-              <div id="proposal-quality-state" class="state"></div>
-              <pre id="proposal-quality-output" class="box"></pre>
-            </div>
-          </div>
-        </section>
+        <section class="page active" id="page-overview"></section>
+        <section class="page" id="page-health"></section>
+        <section class="page" id="page-opportunities"></section>
+        <section class="page" id="page-matches"></section>
+        <section class="page" id="page-notifications"></section>
+        <section class="page" id="page-operations"></section>
+        <section class="page" id="page-proposals"></section>
+        <section class="page" id="page-exports"></section>
+        <section class="page" id="page-intelligence"></section>
       </main>
     </div>
 
     <script src="./site-config.js"></script>
-    <script type="module" src="./dashboard.js"></script>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>

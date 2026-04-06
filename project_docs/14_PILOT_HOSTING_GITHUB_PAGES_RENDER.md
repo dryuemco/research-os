@@ -12,7 +12,11 @@
 - `render.yaml` (Render Blueprint)
 - `docs/index.html`
 - `docs/site-config.example.js`
-- `docs/dashboard.js`
+- `docs/app.js`
+- `docs/js/config.js`
+- `docs/js/api-client.js`
+- `docs/js/ui.js`
+- `docs/js/pages.js`
 - `docs/styles.css`
 
 ## Render setup
@@ -39,7 +43,16 @@
 4. Keep `docs/.nojekyll` in place to avoid Jekyll interference with static assets.
 
 ## Static dashboard coverage
-`docs/index.html` now renders a static operator dashboard that fetches live backend data from:
+`docs/index.html` now renders a static operator dashboard shell with page-style navigation.
+
+Frontend modules are split into:
+- `docs/js/config.js` (frontend configuration + validation)
+- `docs/js/api-client.js` (shared API fetch client with timeout handling)
+- `docs/js/ui.js` (reusable rendering helpers)
+- `docs/js/pages.js` (page renderers and page-level interactions)
+- `docs/app.js` (app bootstrap, navigation, refresh wiring)
+
+The dashboard fetches live backend data from:
 - `/health/ready`
 - `/dashboard/summary`
 - `/dashboard/opportunities`
@@ -57,6 +70,12 @@
 If a backend capability has no data yet (for example partner profiles or proposal quality for an unknown proposal ID),
 the dashboard shows explicit empty/error states instead of mock data.
 
+## Connectivity troubleshooting notes
+- If the dashboard shows backend/API errors, verify `ALLOWED_ORIGINS` includes your GitHub Pages URL.
+- Confirm `docs/site-config.js` points to the intended backend URL.
+- Confirm Render web health (`/health/ready`) is `ok`.
+- Confirm protected endpoints requiring internal auth are not being called by public dashboard pages.
+
 ## CORS and split-hosting
 - Configure `ALLOWED_ORIGINS` explicitly (no wildcard by default).
 - Suggested value format:
@@ -72,6 +91,9 @@ the dashboard shows explicit empty/error states instead of mock data.
    - verify `GET /operations/jobs`
    - verify `GET /operations/matching-runs`
    - verify `GET /operations/notifications?user_id=ops-admin`
+
+For a complete go/no-go validation, run the checklist in:
+- `project_docs/16_POST_DEPLOY_TEST_CHECKLIST.md`
 
 ## Free-tier limitations
 - Web/worker cold starts may delay responses.

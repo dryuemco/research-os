@@ -104,8 +104,10 @@ This repository contains a production-credible backend foundation for a Research
 ## Internet-accessible pilot hosting (GitHub Pages + Render)
 - Static public entry/dashboard is in `docs/` and published directly from the `main` branch (`/docs` folder) via GitHub Pages branch settings.
 - Static dashboard API target is configured in `docs/site-config.js` and defaults to `https://rpos-api.onrender.com`.
+- Dashboard frontend is modularized (`docs/app.js` + `docs/js/*`) to keep config, API client, rendering helpers, and page modules separate.
 - Stateful backend/worker/database are deployed on Render using `render.yaml`.
 - See `project_docs/14_PILOT_HOSTING_GITHUB_PAGES_RENDER.md` for full setup and smoke tests.
+- Use `project_docs/16_POST_DEPLOY_TEST_CHECKLIST.md` for post-deploy operator verification.
 
 ### Render runtime startup notes
 - Web start command should be `python -m app.main` (long-running FastAPI process).
