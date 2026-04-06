@@ -19,8 +19,9 @@ from app.schemas.operations import (
     TriggerLiveIngestionRequest,
     TriggerMatchingRequest,
 )
-from app.security.auth import require_permissions
+from app.security.auth import get_internal_admin_user, require_permissions
 from app.services.demo_seed_service import DemoSeedService
+from app.services.opportunity_adapters.base import AdapterFetchError
 from app.services.notification_service import NotificationService
 from app.services.operational_loop_service import OperationalLoopService
 from app.services.opportunity_import_service import OpportunityImportService
@@ -31,6 +32,12 @@ router = APIRouter()
 
 def _db_error_payload(exc: Exception, *, default_code: str) -> dict:
     message = str(exc)
+    if isinstance(exc, AdapterFetchError):
+        return {
+            "error_code": exc.code,
+            "message": message,
+            "diagnostics": exc.diagnostics,
+        }
     if "UndefinedTable" in message or 'relation "' in message:
         return {
             "error_code": "database_schema_missing",
@@ -141,6 +148,7 @@ def mark_notification_read(
 def trigger_live_ingestion(
     request: TriggerLiveIngestionRequest,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(get_internal_admin_user)],
 ) -> dict:
     normalized_programmes = [item.strip().lower() for item in request.programmes if item.strip()]
     try:
@@ -190,7 +198,7 @@ def trigger_live_ingestion(
 def bootstrap_demo_data(
     request: DemoBootstrapRequest,
     db: Annotated[Session, Depends(get_db_session)],
-    _: Annotated[object, Depends(require_permissions(Permission.OPPORTUNITY_APPROVE))],
+    _: Annotated[object, Depends(get_internal_admin_user)],
 ) -> dict:
     if not request.confirm:
         raise HTTPException(

@@ -60,7 +60,7 @@ class Settings(BaseSettings):
         alias="OPERATIONAL_SOURCE_FIXTURE_PATH",
     )
     eu_funding_api_url: str = Field(
-        default="https://ec.europa.eu/info/funding-tenders/opportunities/data/topicSearch",
+        default="https://ec.europa.eu/info/funding-tenders/opportunities/data-api/topic/search",
         alias="EU_FUNDING_API_URL",
     )
     eu_funding_timeout_seconds: int = Field(default=20, alias="EU_FUNDING_TIMEOUT_SECONDS")

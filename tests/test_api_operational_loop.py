@@ -1,5 +1,6 @@
 from app.domain.opportunity_discovery.models import InterestProfile
 from app.services.opportunity_adapters import DEFAULT_ADAPTERS
+from app.services.opportunity_adapters.base import AdapterFetchError
 from app.services.opportunity_adapters.eu_funding_tenders import EUFundingTendersAdapter
 
 
@@ -100,3 +101,27 @@ def test_live_ingestion_api_flow(client, monkeypatch):
     assert body["source_name"] == "eu_funding_tenders"
     assert body["result_summary"]["created_count"] == 1
     assert len(body["sample_opportunities"]) >= 1
+
+
+def test_live_ingestion_api_returns_provider_diagnostics_on_source_block(client, monkeypatch):
+    adapter = EUFundingTendersAdapter()
+
+    def _raise_block(**_kwargs):
+        raise AdapterFetchError(
+            code="robots_blocked",
+            message="EU Funding API returned HTTP 403",
+            diagnostics={"category": "robots_blocked", "status_code": 403},
+        )
+
+    monkeypatch.setattr(adapter, "_fetch_live_payload", _raise_block)
+    monkeypatch.setitem(DEFAULT_ADAPTERS, "eu_funding_tenders", adapter)
+
+    response = client.post(
+        "/operations/jobs/ingestion/live",
+        json={"programmes": ["horizon"], "limit": 10, "run_matching_after": False},
+    )
+
+    assert response.status_code == 502
+    detail = response.json()["detail"]
+    assert detail["error_code"] == "robots_blocked"
+    assert detail["diagnostics"]["category"] == "robots_blocked"
