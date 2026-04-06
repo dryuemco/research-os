@@ -5,12 +5,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
+from app.domain.common.enums import Permission
 from app.domain.opportunity_discovery.models import Opportunity
 from app.schemas.opportunity import (
     OpportunityDecisionRequest,
     OpportunityIngestRequest,
     OpportunityResponse,
 )
+from app.security.auth import require_permissions
 from app.services.opportunity_ingestion_service import OpportunityIngestionService
 from app.services.opportunity_state_service import (
     InvalidOpportunityTransitionError,
@@ -24,6 +26,7 @@ router = APIRouter()
 def ingest_dev_payload(
     request: OpportunityIngestRequest,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.OPPORTUNITY_APPROVE))],
 ) -> OpportunityResponse:
     try:
         opportunity = OpportunityIngestionService(db).ingest_dev_payload(request)
@@ -46,6 +49,7 @@ def list_opportunities(
 def get_opportunity(
     opportunity_id: str,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.OPPORTUNITY_APPROVE))],
 ) -> OpportunityResponse:
     item = db.get(Opportunity, opportunity_id)
     if item is None:
@@ -58,6 +62,7 @@ def set_decision(
     opportunity_id: str,
     request: OpportunityDecisionRequest,
     db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.OPPORTUNITY_APPROVE))],
 ) -> OpportunityResponse:
     item = db.get(Opportunity, opportunity_id)
     if item is None:

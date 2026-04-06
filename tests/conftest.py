@@ -36,6 +36,13 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
         yield db_session
 
     app.dependency_overrides[get_db_session] = override_get_db_session
-    with TestClient(app) as test_client:
+    with TestClient(
+        app,
+        headers={
+            "X-Internal-Api-Key": "dev-internal-key",
+            "X-User-Id": "test-user",
+            "X-User-Role": "admin",
+        },
+    ) as test_client:
         yield test_client
     app.dependency_overrides.clear()
