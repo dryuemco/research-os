@@ -91,7 +91,8 @@ This repository contains a production-credible backend foundation for a Research
 - `alembic` - migration environment and revisions
 - `tests` - unit and API smoke tests
 - `prompts` - versioned prompt assets kept separate from code
-- `docs` - design intent plus implementation notes
+- `project_docs` - design intent plus implementation notes
+- `docs` - GitHub Pages static publishing directory (landing page only)
 
 ## Quick start
 1. Copy `.env.example` values into a local `.env` if you want local overrides.
@@ -103,7 +104,7 @@ This repository contains a production-credible backend foundation for a Research
 ## Internet-accessible pilot hosting (GitHub Pages + Render)
 - Static public entry page is in `docs/` and published directly from the `main` branch (`/docs` folder) via GitHub Pages branch settings.
 - Stateful backend/worker/database are deployed on Render using `render.yaml`.
-- See `docs/14_PILOT_HOSTING_GITHUB_PAGES_RENDER.md` for full setup and smoke tests.
+- See `project_docs/14_PILOT_HOSTING_GITHUB_PAGES_RENDER.md` for full setup and smoke tests.
 
 ## Important guardrails
 - Human approval remains mandatory before proposal drafting or submission-related work.

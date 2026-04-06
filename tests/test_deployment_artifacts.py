@@ -9,3 +9,5 @@ def test_github_pages_artifacts_exist():
     assert Path("docs/index.html").exists()
     assert Path("docs/site-config.example.js").exists()
     assert Path("docs/site-config.js").exists()
+    assert Path("docs/.nojekyll").exists()
+    assert not Path(".github/workflows/deploy-pages.yml").exists()

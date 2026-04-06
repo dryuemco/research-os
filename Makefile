@@ -37,6 +37,7 @@ validate-deploy:
 	test -f render.yaml
 	test -f docs/index.html
 	test -f docs/site-config.example.js
+	test -f docs/.nojekyll
 
 check:
 	ruff check . && pytest -q
