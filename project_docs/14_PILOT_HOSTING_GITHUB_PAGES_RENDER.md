@@ -17,13 +17,18 @@
 
 ## Render setup
 1. In Render, create a Blueprint from repository root (`render.yaml`).
-2. Set required secret env vars in Render dashboard:
+2. Keep the web start command as `python -m app.main` (the web service must run a long-lived HTTP server process, not a one-shot task).
+3. Set required secret env vars in Render dashboard:
    - `INTERNAL_API_KEY`
    - `ARTIFACT_DOWNLOAD_SECRET`
    - `OPENAI_COMPATIBLE_API_KEY` (if used)
    - `ALLOWED_ORIGINS` (comma-separated, include your GitHub Pages origin)
-3. Ensure API predeploy migration runs: `alembic upgrade head`.
-4. Confirm health check passes at `/health/ready`.
+4. Ensure API predeploy migration runs: `alembic upgrade head`.
+5. Confirm health check passes at `/health/ready`.
+6. Render runtime notes:
+   - host binds to `0.0.0.0` via `APP_HOST`
+   - app reads `PORT` from Render automatically, with `APP_PORT=8000` fallback
+   - `DATABASE_URL` supports hosted `postgres://` values via startup normalization
 
 ## GitHub Pages setup
 1. In repository settings, enable Pages with **Deploy from a branch**.

@@ -1,5 +1,7 @@
+import logging
 from uuid import uuid4
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,6 +11,7 @@ from app.core.logging import configure_logging
 
 settings = get_settings()
 configure_logging(settings.log_level)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.app_name,
@@ -36,3 +39,26 @@ async def request_id_middleware(request, call_next):
     response = await call_next(request)
     response.headers["X-Request-Id"] = request_id
     return response
+
+
+def run() -> None:
+    host = settings.runtime_host()
+    port = settings.runtime_port()
+    logger.info(
+        "Starting FastAPI runtime",
+        extra={
+            "app_env": settings.app_env,
+            "host": host,
+            "port": port,
+            "docs_enabled": settings.docs_enabled,
+        },
+    )
+    try:
+        uvicorn.run("app.main:app", host=host, port=port, log_level=settings.log_level.lower())
+    except Exception:
+        logger.exception("Failed to boot FastAPI runtime")
+        raise
+
+
+if __name__ == "__main__":
+    run()

@@ -6,7 +6,7 @@ services:
     rootDir: .
     buildCommand: pip install -e .
     preDeployCommand: alembic upgrade head
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: python -m app.main
     autoDeploy: true
     healthCheckPath: /health/ready
     envVars:
@@ -14,6 +14,10 @@ services:
         value: pilot
       - key: APP_DEBUG
         value: false
+      - key: APP_HOST
+        value: 0.0.0.0
+      - key: APP_PORT
+        value: 8000
       - key: DOCS_ENABLED
         value: true
       - key: INTERNAL_API_KEY
@@ -42,6 +46,10 @@ services:
         value: pilot
       - key: APP_DEBUG
         value: false
+      - key: APP_HOST
+        value: 0.0.0.0
+      - key: APP_PORT
+        value: 8000
       - key: INTERNAL_API_KEY
         sync: false
       - key: ARTIFACT_DOWNLOAD_SECRET

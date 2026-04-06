@@ -107,6 +107,11 @@ This repository contains a production-credible backend foundation for a Research
 - Stateful backend/worker/database are deployed on Render using `render.yaml`.
 - See `project_docs/14_PILOT_HOSTING_GITHUB_PAGES_RENDER.md` for full setup and smoke tests.
 
+### Render runtime startup notes
+- Web start command should be `python -m app.main` (long-running FastAPI process).
+- The runtime resolves port from Render `PORT` automatically, with local fallback to `APP_PORT` (`8000`).
+- `DATABASE_URL` is normalized for SQLAlchemy when hosted platforms provide `postgres://...` URLs.
+
 ## Important guardrails
 - Human approval remains mandatory before proposal drafting or submission-related work.
 - Human approval is required for high-risk proposal transitions (e.g., approval for export).

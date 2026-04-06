@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 
 from pydantic import Field
@@ -65,6 +66,29 @@ class Settings(BaseSettings):
         if not self.allowed_origins.strip():
             return []
         return [item.strip() for item in self.allowed_origins.split(",") if item.strip()]
+
+    def sqlalchemy_database_url(self) -> str:
+        """
+        Normalize common hosted Postgres URL variants for SQLAlchemy.
+
+        Render often provides URLs using `postgres://...`, while SQLAlchemy 2.x
+        with psycopg expects `postgresql+psycopg://...`.
+        """
+        url = self.database_url.strip()
+        if url.startswith("postgres://"):
+            return "postgresql+psycopg://" + url[len("postgres://") :]
+        if url.startswith("postgresql://") and "+psycopg" not in url:
+            return "postgresql+psycopg://" + url[len("postgresql://") :]
+        return url
+
+    def runtime_host(self) -> str:
+        return self.app_host or "0.0.0.0"
+
+    def runtime_port(self) -> int:
+        raw = os.getenv("PORT")
+        if raw and raw.isdigit():
+            return int(raw)
+        return self.app_port or 8000
 
 
 @lru_cache
