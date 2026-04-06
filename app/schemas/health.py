@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ComponentHealth(BaseModel):
@@ -10,3 +10,4 @@ class HealthResponse(BaseModel):
     status: str
     app_env: str
     database: ComponentHealth
+    dependencies: dict[str, dict] = Field(default_factory=dict)
