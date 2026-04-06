@@ -5,3 +5,5 @@ def test_health_endpoint_reports_ok(client) -> None:
     payload = response.json()
     assert payload["status"] == "ok"
     assert payload["database"]["status"] == "ok"
+    assert "config" in payload["dependencies"]
+    assert "cors_origins_count" in payload["dependencies"]["config"]
