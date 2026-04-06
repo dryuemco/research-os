@@ -1,3 +1,4 @@
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.testclient import TestClient
 
 from app.core.config import Settings, get_settings
@@ -38,5 +39,11 @@ def test_startup_summary_includes_non_secret_runtime_fields():
     assert "port" in summary
     assert "database_url_scheme" in summary
     assert "database_uses_local_fallback" in summary
+    assert "cors_enabled" in summary
     assert "cors_origins" in summary
     assert "using_default_internal_api_key" in summary
+
+
+def test_cors_middleware_is_registered():
+    middleware_types = [item.cls for item in app.user_middleware]
+    assert CORSMiddleware in middleware_types

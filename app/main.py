@@ -32,10 +32,12 @@ def _startup_summary() -> dict[str, object]:
         "app_env": settings.app_env,
         "host": settings.runtime_host(),
         "port": settings.runtime_port(),
+        "is_deployed_env": settings.is_deployed_env(),
         "docs_enabled": settings.docs_enabled,
         "database_url_scheme": settings.sqlalchemy_database_url().split("://", maxsplit=1)[0],
         "database_uses_local_fallback": settings.uses_local_database_fallback(),
         "cors_origins_count": len(settings.cors_origins()),
+        "cors_enabled": settings.cors_enabled(),
         "cors_origins": settings.cors_origins(),
         "using_default_internal_api_key": default_internal_key,
         "using_default_artifact_download_secret": default_download_secret,
@@ -44,6 +46,13 @@ def _startup_summary() -> dict[str, object]:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings.validate_deployment_readiness()
+    if settings.is_deployed_env():
+        if settings.internal_api_key in (None, "", "dev-internal-key"):
+            logger.warning("INTERNAL_API_KEY is using default value in deployed environment")
+        if settings.artifact_download_secret in (None, "", "dev-artifact-download-secret"):
+            logger.warning(
+                "ARTIFACT_DOWNLOAD_SECRET is using default value in deployed environment"
+            )
     logger.info("FastAPI startup diagnostics: %s", _startup_summary())
     yield
 

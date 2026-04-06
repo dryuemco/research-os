@@ -60,7 +60,10 @@ class Settings(BaseSettings):
         alias="OPERATIONAL_SOURCE_FIXTURE_PATH",
     )
     allowed_origins: str = Field(default="", alias="ALLOWED_ORIGINS")
-    github_pages_url: str | None = Field(default=None, alias="GITHUB_PAGES_URL")
+    github_pages_url: str | None = Field(
+        default="https://dryuemco.github.io",
+        alias="GITHUB_PAGES_URL",
+    )
 
     def cors_origins(self) -> list[str]:
         origins: list[str] = []
@@ -70,6 +73,9 @@ class Settings(BaseSettings):
             origins.append(self.github_pages_url.strip().rstrip("/"))
         deduped = [item for item in dict.fromkeys(origins) if item]
         return deduped
+
+    def cors_enabled(self) -> bool:
+        return len(self.cors_origins()) > 0
 
     def sqlalchemy_database_url(self) -> str:
         """
@@ -94,7 +100,14 @@ class Settings(BaseSettings):
         )
 
     def is_deployed_env(self) -> bool:
-        return self.app_env.lower() in {"pilot", "staging", "prod", "production"}
+        if self.app_env.lower() in {"pilot", "staging", "prod", "production"}:
+            return True
+        render_flag = os.getenv("RENDER") or os.getenv("RENDER_EXTERNAL_URL")
+        if render_flag:
+            return True
+        if self.app_public_url and "onrender.com" in self.app_public_url:
+            return True
+        return False
 
     def validate_deployment_readiness(self) -> None:
         if self.is_deployed_env() and self.uses_local_database_fallback():

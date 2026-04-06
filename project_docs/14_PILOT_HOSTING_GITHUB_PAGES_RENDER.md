@@ -30,6 +30,7 @@
 4. Ensure API predeploy migration runs: `alembic upgrade head`.
 5. Confirm health check passes at `/health/ready`.
 6. Render runtime notes:
+   - set `APP_ENV=pilot` explicitly (do not leave hosted deployment in `local`)
    - host binds to `0.0.0.0` via `APP_HOST`
    - app reads `PORT` from Render automatically, with `APP_PORT=8000` fallback
    - `DATABASE_URL` supports hosted `postgres://` values via startup normalization
@@ -83,7 +84,7 @@ the dashboard shows explicit empty/error states instead of mock data.
 ## CORS and split-hosting
 - Configure `ALLOWED_ORIGINS` explicitly (no wildcard by default).
 - Suggested value format:
-  - `https://<org>.github.io,https://<custom-domain-if-any>`
+  - `https://dryuemco.github.io,https://<custom-domain-if-any>`
 
 ## Smoke test after deploy
 1. Open GitHub Pages landing URL.

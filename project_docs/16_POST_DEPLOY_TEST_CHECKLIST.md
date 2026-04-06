@@ -26,6 +26,7 @@ Use this checklist after every pilot deployment.
 - [ ] intelligence page loads retrieval/partners (or explicit empty/error states)
 
 ## 4) Config/security checks
+- [ ] `APP_ENV=pilot` on hosted Render services
 - [ ] `DATABASE_URL` is set from managed Render database
 - [ ] `INTERNAL_API_KEY` is not default value
 - [ ] `ARTIFACT_DOWNLOAD_SECRET` is not default value
