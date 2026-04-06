@@ -11,7 +11,9 @@ from app.services.opportunity_adapters.eu_funding_tenders import EUFundingTender
 
 def test_eu_funding_adapter_fetch_records_and_normalize_from_live_payload():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.method == "POST"
+        assert request.method == "GET"
+        assert request.url.params.get("query") is not None
+        assert request.url.params.get("size") == "10"
         return httpx.Response(
             200,
             json={
