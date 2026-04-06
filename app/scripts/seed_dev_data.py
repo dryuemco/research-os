@@ -1,71 +1,53 @@
+import argparse
+
+from app.core.config import get_settings
 from app.db.session import SessionLocal
-from app.domain.common.enums import UserRole
-from app.domain.identity_models import User
-from app.domain.opportunity_discovery.models import InterestProfile
-from app.domain.partner_intelligence.models import PartnerProfile
-from app.services.operational_loop_service import OperationalLoopService
-
-
-def _seed_user(session) -> User:
-    user = session.query(User).filter(User.email == "pilot-admin@example.org").first()
-    if user is None:
-        user = User(
-            email="pilot-admin@example.org",
-            display_name="Pilot Admin",
-            role=UserRole.ADMIN,
-            team_name="grant-office",
-            org_name="rpos-internal",
-            is_active=True,
-        )
-        session.add(user)
-        session.flush()
-    return user
+from app.services.demo_seed_service import DemoSeedService
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Bootstrap deterministic demo data for pilot walkthroughs."
+    )
+    parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="Required safety switch to run seed/bootstrap mutations.",
+    )
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Reset previously seeded demo profile/matches/notifications and reload.",
+    )
+    parser.add_argument(
+        "--no-proposal",
+        action="store_true",
+        help="Skip creating a demo proposal workspace from a shortlisted opportunity.",
+    )
+    parser.add_argument(
+        "--fixture-path",
+        default=get_settings().operational_source_fixture_path,
+        help="Path to fixture JSON with records[] for ingestion.",
+    )
+    args = parser.parse_args()
+
+    if not args.confirm:
+        raise SystemExit("Refusing to run without --confirm (explicit invocation required).")
+
     session = SessionLocal()
     try:
-        user = _seed_user(session)
-        profile = (
-            session.query(InterestProfile)
-            .filter(InterestProfile.name == "Default Dev Profile")
-            .first()
+        result = DemoSeedService(session).bootstrap(
+            fixture_path=args.fixture_path,
+            reset_demo_state=args.reset,
+            create_demo_proposal=not args.no_proposal,
         )
-        if profile is None:
-            session.add(
-                InterestProfile(
-                    user_id=user.id,
-                    name="Default Dev Profile",
-                    parameters_json={
-                        "allowed_programs": ["Horizon Europe", "Erasmus+"],
-                        "preferred_keywords": ["ai", "climate", "health"],
-                        "weights": {"keyword_overlap": 0.7, "budget_fit": 0.3},
-                    },
-                )
-            )
-        OperationalLoopService(session).ensure_default_jobs()
-        partner = (
-            session.query(PartnerProfile)
-            .filter(PartnerProfile.partner_name == "Demo Partner Lab")
-            .first()
-        )
-        if partner is None:
-            session.add(
-                PartnerProfile(
-                    partner_name="Demo Partner Lab",
-                    legal_name="Demo Partner Research Lab",
-                    country_code="DE",
-                    organization_type="research_org",
-                    capability_tags=["ai", "climate", "evaluation"],
-                    program_participation=["horizon"],
-                    role_suitability={"coordinator": 0.8, "beneficiary": 0.9},
-                    source_metadata={"source": "seed"},
-                    intelligence_notes="Seeded partner profile for pilot demos.",
-                    active=True,
-                )
-            )
         session.commit()
-        print(f"Seeded pilot user id={user.id}")
+        print(
+            "Demo bootstrap complete "
+            f"(opportunities_loaded={result.opportunities_loaded}, "
+            f"matches={result.matches_created}, notifications={result.notifications_created}, "
+            f"proposal_created={result.proposal_created})"
+        )
     finally:
         session.close()
 

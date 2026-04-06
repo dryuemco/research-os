@@ -2,19 +2,72 @@
   "source_name": "funding_call_scaffold",
   "records": [
     {
-      "source_record_id": "dev-call-001",
+      "source_record_id": "horizon-cluster6-2026-climate-ai-01",
       "payload": {
-        "external_id": "dev-call-001",
+        "external_id": "HORIZON-CL6-2026-CLIMATE-AI-01",
         "source_program": "horizon",
-        "source_url": "https://example.org/dev-call-001",
-        "title": "AI for Climate Adaptation",
-        "summary": "Develop AI-supported adaptation strategies for urban resilience.",
-        "full_text": "Scope includes modeling, deployment, ethics, and measurable impact KPIs.",
-        "deadline_at": "2026-07-31T23:59:59+00:00",
-        "budget_total": 2500000,
+        "source_url": "https://example.eu/horizon/cl6/2026/climate-ai-01",
+        "title": "AI-enabled Climate Risk Digital Twins for Regions",
+        "summary": "Develop regional digital twins combining climate, infrastructure, and health indicators for adaptation planning.",
+        "full_text": "The call supports consortium projects that build AI-enabled climate risk digital twins, validate scenario simulation quality, and deliver operational adaptation decision support for municipalities.",
+        "deadline_at": "2026-07-31T17:00:00+00:00",
+        "call_status": "open",
+        "budget_total": 4500000,
         "currency": "EUR",
-        "eligibility_notes": ["EU entities", "Consortium required"],
-        "expected_outcomes": ["Pilot deployments", "Policy-ready evidence"]
+        "eligibility_notes": [
+          "At least 3 independent entities from 3 different eligible countries",
+          "Demonstration in at least two regions"
+        ],
+        "expected_outcomes": [
+          "Validated AI climate risk models",
+          "Policy-ready adaptation pathways"
+        ]
+      }
+    },
+    {
+      "source_record_id": "horizon-health-ai-2026-02",
+      "payload": {
+        "external_id": "HORIZON-HLTH-2026-AI-02",
+        "source_program": "horizon",
+        "source_url": "https://example.eu/horizon/health/2026/ai-02",
+        "title": "Federated AI for Preventive Public Health in Climate-sensitive Regions",
+        "summary": "Build privacy-preserving federated analytics for preventive care and heat-related risk forecasting.",
+        "full_text": "Projects should deliver federated machine learning pilots across hospitals and regional health agencies, with measurable reductions in response latency for climate-sensitive events.",
+        "deadline_at": "2026-09-18T17:00:00+00:00",
+        "call_status": "open",
+        "budget_total": 6200000,
+        "currency": "EUR",
+        "eligibility_notes": [
+          "Clinical validation required",
+          "Ethics and data governance plan mandatory"
+        ],
+        "expected_outcomes": [
+          "Cross-border federated health models",
+          "Evidence of improved preparedness"
+        ]
+      }
+    },
+    {
+      "source_record_id": "erasmus-digital-skills-2026-04",
+      "payload": {
+        "external_id": "ERASMUS-EDU-2026-DIGI-04",
+        "source_program": "erasmus+",
+        "source_url": "https://example.eu/erasmus/2026/digital-skills-04",
+        "title": "AI and Data Skills Academies for Green Transition",
+        "summary": "Develop multilingual micro-credential pathways for AI/data skills supporting green transition sectors.",
+        "full_text": "The call funds alliances of universities, vocational providers, and regional innovation actors to deliver stackable AI and data skills curricula linked to climate transition jobs.",
+        "deadline_at": "2026-10-10T17:00:00+00:00",
+        "call_status": "open",
+        "budget_total": 1800000,
+        "currency": "EUR",
+        "eligibility_notes": [
+          "Consortium must include at least one VET provider",
+          "Open educational resources required"
+        ],
+        "expected_outcomes": [
+          "Cross-institution digital curriculum",
+          "Micro-credential framework"
+        ]
       }
     }
   ]

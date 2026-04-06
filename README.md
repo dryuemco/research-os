@@ -11,6 +11,7 @@ This repository contains a production-credible backend foundation for a Research
 ## API endpoints in current slice
 - `GET /health`
 - `POST /opportunities/ingest/dev`
+- `POST /opportunities/ingest/dev/fixture`
 - `GET /opportunities`
 - `GET /opportunities/{opportunity_id}`
 - `POST /opportunities/{opportunity_id}/decision`
@@ -98,7 +99,7 @@ This repository contains a production-credible backend foundation for a Research
 1. Copy `.env.example` values into a local `.env` if you want local overrides.
 2. Run `docker compose up --build` for the API + PostgreSQL stack.
 3. Run `make migrate` to apply Alembic migrations.
-4. (Optional) Run `make seed-dev` to seed one development interest profile.
+4. Run `make seed-dev` to load a full pilot demo dataset (opportunities, profile, partners, memory blocks, matching runs, notifications, and one demo proposal workspace when possible).
 5. Run `make test` for the current test suite.
 
 ## Internet-accessible pilot hosting (GitHub Pages + Render)
@@ -166,6 +167,33 @@ This repository contains a production-credible backend foundation for a Research
 - Scheduler can be run with `make run-ops`; due jobs are executed based on `next_run_at`.
 - Source ingestion supports fixture-backed pull mode via `OPERATIONAL_SOURCE_FIXTURE_PATH`.
 - Notifications are currently in-app/internal and queryable via `/operations/notifications`.
+
+## Demo bootstrap workflow (pilot walkthrough)
+Use this when the backend is healthy but mostly empty and you need dashboard-populating demo data.
+
+### 1) Populate demo data (explicit invocation required)
+- `make seed-dev` runs `python -m app.scripts.seed_dev_data --confirm`.
+- It ingests fixture opportunities, ensures a demo interest profile, partner profiles, memory content, triggers matching, and creates notifications.
+- It also attempts to create one proposal workspace from a shortlisted opportunity.
+
+### 2) Reset/reload demo data (optional)
+- `make seed-dev-reset` resets demo-tagged profile/matches/notifications/memory/partners and reloads from fixture.
+
+### 3) Fixture-driven ingest from Swagger
+- Endpoint: `POST /opportunities/ingest/dev/fixture`
+- Default fixture path comes from `OPERATIONAL_SOURCE_FIXTURE_PATH` (default: `./config/dev_source_payloads.example.json`).
+- Useful for pilot operator demos directly from API docs without building request JSON manually.
+
+### 4) Minimal endpoint order for demo verification
+1. `POST /opportunities/ingest/dev/fixture`
+2. `GET /dashboard/summary`
+3. `GET /dashboard/opportunities`
+4. `GET /dashboard/matches`
+5. `GET /dashboard/operations/jobs`
+6. `GET /dashboard/operations/notifications`
+7. `GET /dashboard/proposals`
+
+If seed data is loaded, these lists/counters should be non-empty. If no data is loaded, endpoints should continue returning clean empty/degraded payloads (not hard errors).
 
 ## Intelligence-quality notes
 - Retrieval is policy-driven and now supports hybrid orchestration (lexical + vector-ready contract backend).
