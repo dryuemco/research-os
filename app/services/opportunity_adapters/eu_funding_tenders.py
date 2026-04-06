@@ -61,18 +61,20 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
         include_closed: bool,
     ) -> list[dict]:
         query = self._build_query(programmes=programmes, include_closed=include_closed)
-        payload = {
+        params = {
             "query": query,
             "page": 0,
             "size": max(1, min(limit, 100)),
             "sort": "deadlineDate asc",
         }
+        headers = {"accept": "application/json"}
+
         client_args: dict = {"timeout": timeout_seconds}
         if self._transport is not None:
             client_args["transport"] = self._transport
 
         with httpx.Client(**client_args) as client:
-            response = client.post(url, json=payload)
+            response = client.get(url, params=params, headers=headers)
             response.raise_for_status()
             raw = response.json()
 

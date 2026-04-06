@@ -16,7 +16,7 @@ from app.schemas.opportunity import (
     OpportunityIngestRequest,
     OpportunityResponse,
 )
-from app.security.auth import require_permissions
+from app.security.auth import get_internal_admin_user, require_permissions
 from app.services.opportunity_import_service import OpportunityImportService
 from app.services.opportunity_ingestion_service import OpportunityIngestionService
 from app.services.opportunity_state_service import (
@@ -59,7 +59,7 @@ def ingest_dev_payload(
 @router.post("/ingest/dev/fixture")
 def ingest_dev_fixture(
     db: Annotated[Session, Depends(get_db_session)],
-    _: Annotated[object, Depends(require_permissions(Permission.OPPORTUNITY_APPROVE))],
+    _: Annotated[object, Depends(get_internal_admin_user)],
     fixture_path: str = Query(
         default=get_settings().operational_source_fixture_path,
         description="Server-side JSON fixture file containing records[]",

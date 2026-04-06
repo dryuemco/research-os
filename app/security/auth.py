@@ -85,6 +85,47 @@ def get_current_user(
     )
 
 
+
+
+def get_internal_admin_user(
+    db: Annotated[Session, Depends(get_db_session)],
+    x_internal_api_key: str | None = Header(default=None),
+    x_user_id: str | None = Header(default=None),
+    x_user_role: str | None = Header(default=None),
+) -> CurrentUser:
+    settings = get_settings()
+    if not settings.internal_api_key:
+        raise HTTPException(status_code=500, detail="INTERNAL_API_KEY is not configured")
+    if x_internal_api_key != settings.internal_api_key:
+        raise HTTPException(status_code=401, detail="Invalid internal API key")
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="Missing X-User-Id")
+
+    role_raw = x_user_role or UserRole.ADMIN.value
+    try:
+        requested_role = UserRole(role_raw)
+    except ValueError as exc:
+        raise HTTPException(status_code=401, detail="Invalid X-User-Role") from exc
+
+    if requested_role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Missing permissions: ['opportunity.approve']")
+
+    user = db.get(User, x_user_id)
+    if user is not None:
+        return CurrentUser(
+            user_id=user.id,
+            role=UserRole.ADMIN,
+            team_name=user.team_name,
+            org_name=user.org_name,
+        )
+
+    return CurrentUser(
+        user_id=x_user_id,
+        role=UserRole.ADMIN,
+        team_name=None,
+        org_name=None,
+    )
+
 def require_permissions(*permissions: Permission):
     def dependency(
         current_user: Annotated[CurrentUser, Depends(get_current_user)]
