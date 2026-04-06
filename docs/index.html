@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RPOS Pilot Entry</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 760px; margin: 24px auto; line-height: 1.5; }
+      .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-top: 16px; }
+      a { color: #175cd3; text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>RPOS Pilot Access</h1>
+    <p>
+      This public static page is hosted on GitHub Pages. The stateful RPOS backend, workers,
+      and PostgreSQL are hosted on Render.
+    </p>
+
+    <div class="card">
+      <h2>Pilot Links</h2>
+      <ul>
+        <li><a id="ui-link" href="#">Open Internal UI</a></li>
+        <li><a id="docs-link" href="#">Open API Docs</a></li>
+        <li><a id="health-link" href="#">Check Health</a></li>
+      </ul>
+      <p id="backend-label"></p>
+    </div>
+
+    <div class="card">
+      <h2>How to set URLs</h2>
+      <p>
+        Set your backend host by editing <code>docs/site-config.js</code> (copied from
+        <code>docs/site-config.example.js</code>) before publishing the Pages site.
+      </p>
+    </div>
+
+    <script src="./site-config.js"></script>
+    <script>
+      const backendBaseUrl = (window.RPOS_SITE_CONFIG && window.RPOS_SITE_CONFIG.backendBaseUrl) || "";
+      const base = backendBaseUrl.replace(/\/$/, "");
+      document.getElementById("ui-link").href = base + "/ui";
+      document.getElementById("docs-link").href = base + "/docs";
+      document.getElementById("health-link").href = base + "/health/ready";
+      document.getElementById("backend-label").innerText = base
+        ? `Configured backend: ${base}`
+        : "Backend URL not configured. Update docs/site-config.js.";
+    </script>
+  </body>
+</html>

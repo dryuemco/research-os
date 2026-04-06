@@ -6,6 +6,9 @@ install:
 run:
 	uvicorn app.main:app --reload
 
+run-api:
+	uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
 test:
 	pytest
 
@@ -23,3 +26,17 @@ makemigration:
 
 seed-dev:
 	$(PYTHON) -m app.scripts.seed_dev_data
+
+run-worker:
+	$(PYTHON) -m app.scripts.run_execution_worker
+
+run-ops:
+	$(PYTHON) -m app.scripts.run_operational_loop
+
+validate-deploy:
+	test -f render.yaml
+	test -f docs/index.html
+	test -f docs/site-config.example.js
+
+check:
+	ruff check . && pytest -q

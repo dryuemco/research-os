@@ -14,6 +14,27 @@ from app.domain.execution_orchestrator.models import (  # noqa: F401
     ValidationActivity,
     WorkPackage,
 )
+from app.domain.execution_orchestrator.runtime_models import (  # noqa: F401
+    ExecutionJob,
+    ExecutionRun,
+    ProviderExecutionTrace,
+)
+from app.domain.identity_models import User  # noqa: F401
+from app.domain.institutional_memory.models import (  # noqa: F401
+    CapabilityProfile,
+    DocumentSource,
+    ExportArtifact,
+    ExportPackage,
+    MemoryChunk,
+    MemoryDocument,
+    ReusableEvidenceBlock,
+)
+from app.domain.operations.models import (  # noqa: F401
+    MatchingRun,
+    Notification,
+    OperationalJobConfig,
+    OperationalJobRun,
+)
 from app.domain.opportunity_discovery.models import (  # noqa: F401
     InterestProfile,
     MatchResult,
@@ -21,6 +42,7 @@ from app.domain.opportunity_discovery.models import (  # noqa: F401
     OpportunityIngestionSnapshot,
     OpportunityVersion,
 )
+from app.domain.partner_intelligence.models import PartnerProfile  # noqa: F401
 from app.domain.proposal_factory.models import (  # noqa: F401
     Proposal,
     ProposalSection,
