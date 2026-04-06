@@ -101,7 +101,7 @@ This repository contains a production-credible backend foundation for a Research
 5. Run `make test` for the current test suite.
 
 ## Internet-accessible pilot hosting (GitHub Pages + Render)
-- Static public entry page is in `pages/` and deployed via GitHub Actions workflow (`.github/workflows/deploy-pages.yml`).
+- Static public entry page is in `docs/` and published directly from the `main` branch (`/docs` folder) via GitHub Pages branch settings.
 - Stateful backend/worker/database are deployed on Render using `render.yaml`.
 - See `docs/14_PILOT_HOSTING_GITHUB_PAGES_RENDER.md` for full setup and smoke tests.
 

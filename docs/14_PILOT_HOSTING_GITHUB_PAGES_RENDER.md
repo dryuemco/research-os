@@ -1,16 +1,15 @@
 # 14 - Pilot Hosting Guide (GitHub Pages + Render)
 
 ## Architecture
-- **GitHub Pages** hosts a static public landing page (`pages/`) with links only.
+- **GitHub Pages** hosts a static public landing page (`docs/`) with links only.
 - **Render Web Service** runs FastAPI API/UI.
 - **Render Worker Service** runs `run_operational_loop` scheduler worker.
 - **Render PostgreSQL** stores application state.
 
 ## Files introduced
 - `render.yaml` (Render Blueprint)
-- `pages/index.html`
-- `pages/site-config.example.js`
-- `.github/workflows/deploy-pages.yml`
+- `docs/index.html`
+- `docs/site-config.example.js`
 
 ## Render setup
 1. In Render, create a Blueprint from repository root (`render.yaml`).
@@ -23,9 +22,9 @@
 4. Confirm health check passes at `/health/ready`.
 
 ## GitHub Pages setup
-1. Ensure workflow permissions allow Pages deploy.
-2. Keep `pages/site-config.js` updated with the Render API URL.
-3. Enable Pages in repository settings to use GitHub Actions deployment source.
+1. In repository settings, enable Pages with **Deploy from a branch**.
+2. Select branch `main` and folder `/docs`.
+3. Keep `docs/site-config.js` updated with the Render API URL.
 
 ## CORS and split-hosting
 - Configure `ALLOWED_ORIGINS` explicitly (no wildcard by default).

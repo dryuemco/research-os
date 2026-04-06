@@ -35,8 +35,8 @@ run-ops:
 
 validate-deploy:
 	test -f render.yaml
-	test -f pages/index.html
-	test -f .github/workflows/deploy-pages.yml
+	test -f docs/index.html
+	test -f docs/site-config.example.js
 
 check:
 	ruff check . && pytest -q

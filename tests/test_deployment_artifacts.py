@@ -6,6 +6,6 @@ def test_render_blueprint_exists():
 
 
 def test_github_pages_artifacts_exist():
-    assert Path("pages/index.html").exists()
-    assert Path(".github/workflows/deploy-pages.yml").exists()
-    assert Path("pages/site-config.example.js").exists()
+    assert Path("docs/index.html").exists()
+    assert Path("docs/site-config.example.js").exists()
+    assert Path("docs/site-config.js").exists()
