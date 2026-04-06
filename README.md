@@ -119,9 +119,10 @@ This repository contains a production-credible backend foundation for a Research
 
 ### Render runtime startup notes
 - Web start command should be `python -m app.main` (long-running FastAPI process).
+- Docker startup runs `alembic upgrade head` before launching `python -m app.main` via `scripts/docker-entrypoint.sh`.
 - The runtime resolves port from Render `PORT` automatically, with local fallback to `APP_PORT` (`8000`).
 - `DATABASE_URL` is normalized for SQLAlchemy when hosted platforms provide `postgres://...` URLs.
-- Docker runtime also uses `CMD ["python", "-m", "app.main"]` from `Dockerfile`.
+- Docker runtime uses `CMD ["/workspace/scripts/docker-entrypoint.sh"]` from `Dockerfile`.
 - Required Render env vars: `DATABASE_URL`, `INTERNAL_API_KEY`, `ARTIFACT_DOWNLOAD_SECRET` (plus optional `OPENAI_COMPATIBLE_API_KEY` when used).
 - Set `APP_ENV=pilot` on Render (avoid `local` in hosted deployments).
 - For this pilot Pages setup, set `ALLOWED_ORIGINS=https://dryuemco.github.io` (comma-separate additional origins if needed).

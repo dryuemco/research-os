@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 COPY pyproject.toml README.md ./
 RUN pip install --upgrade pip && pip install -e .[dev]
 COPY . .
+RUN chmod +x /workspace/scripts/docker-entrypoint.sh
 
 EXPOSE 8000
-CMD ["python", "-m", "app.main"]
+CMD ["/workspace/scripts/docker-entrypoint.sh"]
