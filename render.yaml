@@ -1,0 +1,57 @@
+services:
+  - type: web
+    name: rpos-api
+    env: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -e .
+    preDeployCommand: alembic upgrade head
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    autoDeploy: true
+    healthCheckPath: /health/ready
+    envVars:
+      - key: APP_ENV
+        value: pilot
+      - key: APP_DEBUG
+        value: false
+      - key: DOCS_ENABLED
+        value: true
+      - key: INTERNAL_API_KEY
+        sync: false
+      - key: ARTIFACT_DOWNLOAD_SECRET
+        sync: false
+      - key: OPENAI_COMPATIBLE_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rpos-db
+          property: connectionString
+
+  - type: worker
+    name: rpos-ops-worker
+    env: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -e .
+    startCommand: python -m app.scripts.run_operational_loop
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: pilot
+      - key: APP_DEBUG
+        value: false
+      - key: INTERNAL_API_KEY
+        sync: false
+      - key: ARTIFACT_DOWNLOAD_SECRET
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rpos-db
+          property: connectionString
+
+databases:
+  - name: rpos-db
+    plan: free
+    postgresMajorVersion: "16"
