@@ -40,7 +40,7 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
     ) -> list[SourceAdapterRecord]:
         settings = get_settings()
         records = self._fetch_live_payload(
-            url=settings.eu_funding_api_url,
+            url=self._canonicalize_url(settings.eu_funding_api_url),
             timeout_seconds=settings.eu_funding_timeout_seconds,
             programmes=programmes or DEFAULT_PROGRAMMES,
             limit=limit,
@@ -50,6 +50,15 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
             SourceAdapterRecord(source_record_id=item["source_record_id"], payload=item["payload"])
             for item in records
         ]
+
+
+    def _canonicalize_url(self, url: str) -> str:
+        normalized = url.rstrip("/")
+        legacy = "https://ec.europa.eu/info/funding-tenders/opportunities/data/topicSearch"
+        canonical = "https://ec.europa.eu/info/funding-tenders/opportunities/data-api/topic/search"
+        if normalized == legacy:
+            return canonical
+        return normalized
 
     def _fetch_live_payload(
         self,
@@ -61,18 +70,20 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
         include_closed: bool,
     ) -> list[dict]:
         query = self._build_query(programmes=programmes, include_closed=include_closed)
-        payload = {
+        params = {
             "query": query,
             "page": 0,
             "size": max(1, min(limit, 100)),
             "sort": "deadlineDate asc",
         }
-        client_args: dict = {"timeout": timeout_seconds}
+        headers = {"accept": "application/json"}
+
+        client_args: dict = {"timeout": timeout_seconds, "follow_redirects": True}
         if self._transport is not None:
             client_args["transport"] = self._transport
 
         with httpx.Client(**client_args) as client:
-            response = client.post(url, json=payload)
+            response = client.get(url, params=params, headers=headers)
             response.raise_for_status()
             raw = response.json()
 
