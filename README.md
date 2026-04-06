@@ -118,6 +118,7 @@ This repository contains a production-credible backend foundation for a Research
 - Set `APP_ENV=pilot` on Render (avoid `local` in hosted deployments).
 - For this pilot Pages setup, set `ALLOWED_ORIGINS=https://dryuemco.github.io` (comma-separate additional origins if needed).
 - Optional helper: set `GITHUB_PAGES_URL=https://dryuemco.github.io` to auto-include the Pages origin in CORS evaluation.
+- Dashboard and intelligence list endpoints are hardened to return structured empty/degraded payloads (instead of 500) when DB-backed data is unavailable.
 
 ## Important guardrails
 - Human approval remains mandatory before proposal drafting or submission-related work.

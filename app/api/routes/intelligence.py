@@ -1,6 +1,8 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
@@ -17,6 +19,7 @@ from app.services.proposal_quality_service import ProposalQualityService
 from app.services.retrieval_service import RetrievalService
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/retrieval/backends")
@@ -29,7 +32,11 @@ def retrieval_preview(
     request: RetrievalQuery,
     db: Annotated[Session, Depends(get_db_session)],
 ) -> dict:
-    items = RetrievalService(db).retrieve(request)
+    try:
+        items = RetrievalService(db).retrieve(request)
+    except SQLAlchemyError:
+        logger.exception("Retrieval preview failed; returning empty results")
+        return {"items": [], "count": 0, "status": "degraded"}
     return {
         "items": [item.model_dump() for item in items],
         "count": len(items),
@@ -51,7 +58,11 @@ def list_partners(
     db: Annotated[Session, Depends(get_db_session)],
     active_only: bool = Query(default=True),
 ) -> list[PartnerProfileResponse]:
-    items = PartnerIntelligenceService(db).list_partners(active_only=active_only)
+    try:
+        items = PartnerIntelligenceService(db).list_partners(active_only=active_only)
+    except SQLAlchemyError:
+        logger.exception("List partners failed; returning empty list")
+        return []
     return [PartnerProfileResponse.model_validate(item) for item in items]
 
 
@@ -60,7 +71,11 @@ def partner_fit_preview(
     request: PartnerFitRequest,
     db: Annotated[Session, Depends(get_db_session)],
 ) -> list[PartnerFitResult]:
-    return PartnerIntelligenceService(db).fit_preview(request)
+    try:
+        return PartnerIntelligenceService(db).fit_preview(request)
+    except SQLAlchemyError:
+        logger.exception("Partner fit preview failed; returning empty list")
+        return []
 
 
 @router.get("/proposal-quality/{proposal_id}", response_model=ProposalQualitySummary)

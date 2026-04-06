@@ -1,7 +1,9 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
@@ -18,11 +20,41 @@ from app.services.partner_intelligence_service import PartnerIntelligenceService
 from app.services.proposal_quality_service import ProposalQualityService
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+
+def _safe_query(fn, fallback, *, log_message: str):
+    try:
+        return fn()
+    except SQLAlchemyError:
+        logger.exception(log_message)
+        return fallback
+
+
+def _empty_summary_payload() -> dict:
+    return {
+        "opportunities": 0,
+        "matches": 0,
+        "proposals": 0,
+        "execution_plans": 0,
+        "execution_runs": 0,
+        "memory_blocks": 0,
+        "export_packages": 0,
+        "operational_job_runs": 0,
+        "matching_runs": 0,
+        "notifications": 0,
+        "partner_profiles": 0,
+        "_status": "degraded",
+    }
 
 
 @router.get("/summary")
 def dashboard_summary(db: Annotated[Session, Depends(get_db_session)]) -> dict:
-    return DashboardService(db).summary()
+    return _safe_query(
+        lambda: DashboardService(db).summary(),
+        _empty_summary_payload(),
+        log_message="Dashboard summary query failed",
+    )
 
 
 @router.get("/opportunities")
@@ -31,9 +63,13 @@ def dashboard_opportunities(
     limit: int = Query(default=20, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> dict:
-    items = db.scalars(
-        select(Opportunity).order_by(Opportunity.created_at.desc()).offset(offset).limit(limit)
-    ).all()
+    items = _safe_query(
+        lambda: db.scalars(
+            select(Opportunity).order_by(Opportunity.created_at.desc()).offset(offset).limit(limit)
+        ).all(),
+        [],
+        log_message="Dashboard opportunities query failed",
+    )
     return {"items": [{"id": o.id, "title": o.title, "state": o.state.value} for o in items]}
 
 
@@ -60,8 +96,13 @@ def dashboard_matches(
     db: Annotated[Session, Depends(get_db_session)],
     limit: int = Query(default=20, ge=1, le=200),
 ) -> dict:
-    stmt = select(MatchResult).order_by(MatchResult.created_at.desc()).limit(limit)
-    items = db.scalars(stmt).all()
+    items = _safe_query(
+        lambda: db.scalars(
+            select(MatchResult).order_by(MatchResult.created_at.desc()).limit(limit)
+        ).all(),
+        [],
+        log_message="Dashboard matches query failed",
+    )
     return {
         "items": [
             {
@@ -81,7 +122,13 @@ def dashboard_proposals(
     db: Annotated[Session, Depends(get_db_session)],
     limit: int = Query(default=20, ge=1, le=200),
 ) -> dict:
-    proposals = db.scalars(select(Proposal).order_by(Proposal.created_at.desc()).limit(limit)).all()
+    proposals = _safe_query(
+        lambda: db.scalars(
+            select(Proposal).order_by(Proposal.created_at.desc()).limit(limit)
+        ).all(),
+        [],
+        log_message="Dashboard proposals query failed",
+    )
     return {
         "items": [
             {"id": p.id, "name": p.name, "state": p.state.value, "opportunity_id": p.opportunity_id}
@@ -241,9 +288,13 @@ def dashboard_operational_jobs(
     db: Annotated[Session, Depends(get_db_session)],
     limit: int = Query(default=20, ge=1, le=200),
 ) -> dict:
-    items = db.scalars(
-        select(OperationalJobRun).order_by(OperationalJobRun.created_at.desc()).limit(limit)
-    ).all()
+    items = _safe_query(
+        lambda: db.scalars(
+            select(OperationalJobRun).order_by(OperationalJobRun.created_at.desc()).limit(limit)
+        ).all(),
+        [],
+        log_message="Dashboard operational jobs query failed",
+    )
     return {
         "items": [
             {
@@ -264,9 +315,13 @@ def dashboard_matching_runs(
     db: Annotated[Session, Depends(get_db_session)],
     limit: int = Query(default=20, ge=1, le=200),
 ) -> dict:
-    items = db.scalars(
-        select(MatchingRun).order_by(MatchingRun.created_at.desc()).limit(limit)
-    ).all()
+    items = _safe_query(
+        lambda: db.scalars(
+            select(MatchingRun).order_by(MatchingRun.created_at.desc()).limit(limit)
+        ).all(),
+        [],
+        log_message="Dashboard matching-runs query failed",
+    )
     return {
         "items": [
             {
@@ -289,12 +344,16 @@ def dashboard_notifications(
     user_id: str = Query(default="ops-admin"),
     limit: int = Query(default=20, ge=1, le=200),
 ) -> dict:
-    items = db.scalars(
-        select(Notification)
-        .where(Notification.recipient_user_id == user_id)
-        .order_by(Notification.created_at.desc())
-        .limit(limit)
-    ).all()
+    items = _safe_query(
+        lambda: db.scalars(
+            select(Notification)
+            .where(Notification.recipient_user_id == user_id)
+            .order_by(Notification.created_at.desc())
+            .limit(limit)
+        ).all(),
+        [],
+        log_message="Dashboard notifications query failed",
+    )
     return {
         "items": [
             {
@@ -315,7 +374,11 @@ def dashboard_partner_intelligence(
     db: Annotated[Session, Depends(get_db_session)],
     active_only: bool = Query(default=True),
 ) -> dict:
-    items = PartnerIntelligenceService(db).list_partners(active_only=active_only)
+    items = _safe_query(
+        lambda: PartnerIntelligenceService(db).list_partners(active_only=active_only),
+        [],
+        log_message="Dashboard partner intelligence query failed",
+    )
     return {
         "items": [
             {
@@ -339,4 +402,11 @@ def dashboard_proposal_quality(
         summary = ProposalQualityService(db).summarize(proposal_id, round_number=round_number)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except SQLAlchemyError:
+        logger.exception("Dashboard proposal quality query failed")
+        return {
+            "status": "degraded",
+            "proposal_id": proposal_id,
+            "error": "proposal_quality_unavailable",
+        }
     return summary.model_dump()

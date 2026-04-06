@@ -1,8 +1,10 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db_session
@@ -39,6 +41,7 @@ from app.services.memory_service import MemoryService
 from app.services.retrieval_service import RetrievalService
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/sources")
@@ -166,7 +169,11 @@ def list_export_packages(
     db: Annotated[Session, Depends(get_db_session)],
     proposal_id: str | None = Query(default=None),
 ) -> list[ExportPackageResponse]:
-    packages = ExportPackageService(db).list_packages(proposal_id=proposal_id)
+    try:
+        packages = ExportPackageService(db).list_packages(proposal_id=proposal_id)
+    except SQLAlchemyError:
+        logger.exception("List export packages failed; returning empty list")
+        return []
     return [ExportPackageResponse.model_validate(item) for item in packages]
 
 
