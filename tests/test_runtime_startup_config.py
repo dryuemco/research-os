@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.core.config import Settings, get_settings
-from app.main import app
+from app.main import _startup_summary, app
 
 
 def test_database_url_normalization_for_render_style_url():
@@ -30,3 +30,11 @@ def test_app_bootstrap_serves_ready_and_docs_routes():
 
     docs = client.get("/docs")
     assert docs.status_code == 200
+
+
+def test_startup_summary_includes_non_secret_runtime_fields():
+    summary = _startup_summary()
+    assert "host" in summary
+    assert "port" in summary
+    assert "database_url_scheme" in summary
+    assert "using_default_internal_api_key" in summary

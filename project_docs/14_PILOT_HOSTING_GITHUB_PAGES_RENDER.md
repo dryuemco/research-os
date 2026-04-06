@@ -29,6 +29,8 @@
    - host binds to `0.0.0.0` via `APP_HOST`
    - app reads `PORT` from Render automatically, with `APP_PORT=8000` fallback
    - `DATABASE_URL` supports hosted `postgres://` values via startup normalization
+   - expected runtime command is `python -m app.main` (also set as Docker `CMD`)
+   - required env vars for production-like pilot startup: `DATABASE_URL`, `INTERNAL_API_KEY`, `ARTIFACT_DOWNLOAD_SECRET`
 
 ## GitHub Pages setup
 1. In repository settings, enable Pages with **Deploy from a branch**.

@@ -111,6 +111,8 @@ This repository contains a production-credible backend foundation for a Research
 - Web start command should be `python -m app.main` (long-running FastAPI process).
 - The runtime resolves port from Render `PORT` automatically, with local fallback to `APP_PORT` (`8000`).
 - `DATABASE_URL` is normalized for SQLAlchemy when hosted platforms provide `postgres://...` URLs.
+- Docker runtime also uses `CMD ["python", "-m", "app.main"]` from `Dockerfile`.
+- Required Render env vars: `DATABASE_URL`, `INTERNAL_API_KEY`, `ARTIFACT_DOWNLOAD_SECRET` (plus optional `OPENAI_COMPATIBLE_API_KEY` when used).
 
 ## Important guardrails
 - Human approval remains mandatory before proposal drafting or submission-related work.
