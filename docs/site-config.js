@@ -1,3 +1,3 @@
-window.RPOS_CONFIG = {
-  backendBaseUrl: "https://rpos-api.onrender.com"
+window.RPOS_SITE_CONFIG = {
+  backendBaseUrl: "https://rpos-api.onrender.com",
 };

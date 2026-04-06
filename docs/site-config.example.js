@@ -1,3 +1,4 @@
 window.RPOS_SITE_CONFIG = {
-  backendBaseUrl: "https://your-render-api.onrender.com",
+  // Update for your deployment if needed.
+  backendBaseUrl: "https://rpos-api.onrender.com",
 };

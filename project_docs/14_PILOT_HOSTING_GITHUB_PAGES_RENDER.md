@@ -12,6 +12,8 @@
 - `render.yaml` (Render Blueprint)
 - `docs/index.html`
 - `docs/site-config.example.js`
+- `docs/dashboard.js`
+- `docs/styles.css`
 
 ## Render setup
 1. In Render, create a Blueprint from repository root (`render.yaml`).
@@ -26,7 +28,27 @@
 ## GitHub Pages setup
 1. In repository settings, enable Pages with **Deploy from a branch**.
 2. Select branch `main` and folder `/docs`.
-3. Keep `docs/site-config.js` updated with the Render API URL.
+3. Keep `docs/site-config.js` updated with the Render API URL (current default: `https://rpos-api.onrender.com`).
+4. Keep `docs/.nojekyll` in place to avoid Jekyll interference with static assets.
+
+## Static dashboard coverage
+`docs/index.html` now renders a static operator dashboard that fetches live backend data from:
+- `/health/ready`
+- `/dashboard/summary`
+- `/dashboard/opportunities`
+- `/dashboard/matches`
+- `/dashboard/operations/jobs`
+- `/dashboard/operations/notifications`
+- `/dashboard/proposals`
+- `/memory/exports`
+- `/intelligence/retrieval/backends`
+- `/intelligence/retrieval/preview`
+- `/intelligence/partners`
+- `/intelligence/partners/fit`
+- `/intelligence/proposal-quality/{proposal_id}`
+
+If a backend capability has no data yet (for example partner profiles or proposal quality for an unknown proposal ID),
+the dashboard shows explicit empty/error states instead of mock data.
 
 ## CORS and split-hosting
 - Configure `ALLOWED_ORIGINS` explicitly (no wildcard by default).

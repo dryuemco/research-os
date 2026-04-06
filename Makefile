@@ -36,6 +36,8 @@ run-ops:
 validate-deploy:
 	test -f render.yaml
 	test -f docs/index.html
+	test -f docs/dashboard.js
+	test -f docs/styles.css
 	test -f docs/site-config.example.js
 	test -f docs/.nojekyll
 
