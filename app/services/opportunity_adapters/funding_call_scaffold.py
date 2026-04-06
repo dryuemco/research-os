@@ -1,19 +1,48 @@
 import hashlib
+import json
+from pathlib import Path
 
+from app.core.config import get_settings
 from app.schemas.opportunity import OpportunityNormalized
-from app.services.opportunity_adapters.base import OpportunitySourceAdapter
+from app.services.opportunity_adapters.base import (
+    AdapterCapabilityMetadata,
+    AdapterNormalizationError,
+    OpportunitySourceAdapter,
+    SourceAdapterRecord,
+)
 
 
 class FundingCallScaffoldAdapter(OpportunitySourceAdapter):
-    """Scaffold adapter for external funding call sources.
-
-    The adapter intentionally keeps only generic, source-agnostic behavior.
-    Program-specific parsing can be layered later without changing core ingestion.
-    """
+    """Scaffold adapter for external funding call sources."""
 
     source_name = "funding_call_scaffold"
+    capability = AdapterCapabilityMetadata(
+        source_name=source_name,
+        supports_incremental_sync=True,
+        supports_deadline_detection=True,
+        normalization_version="v2",
+    )
+
+    def fetch_records(self, **kwargs) -> list[SourceAdapterRecord]:
+        settings = get_settings()
+        fixture = Path(settings.operational_source_fixture_path)
+        if not fixture.exists():
+            return []
+        payload = json.loads(fixture.read_text(encoding="utf-8"))
+        records: list[SourceAdapterRecord] = []
+        for item in payload.get("records", []):
+            records.append(
+                SourceAdapterRecord(
+                    source_record_id=item["source_record_id"],
+                    payload=item["payload"],
+                )
+            )
+        return records
 
     def normalize(self, source_record_id: str, payload: dict) -> OpportunityNormalized:
+        if not payload.get("title"):
+            raise AdapterNormalizationError("missing_title", "payload is missing required title")
+
         title = payload.get("title", "Untitled opportunity")
         summary = payload.get("summary", "")
         full_text = payload.get("full_text") or summary
@@ -38,6 +67,10 @@ class FundingCallScaffoldAdapter(OpportunitySourceAdapter):
             expected_outcomes=payload.get("expected_outcomes", []),
             raw_payload=payload,
             version_hash=version_hash,
-            provenance={"adapter": self.source_name, "source_record_id": source_record_id},
+            provenance={
+                "adapter": self.source_name,
+                "source_record_id": source_record_id,
+                "normalization_version": self.capability.normalization_version,
+            },
             uncertainty_notes=payload.get("uncertainty_notes", []),
         )

@@ -18,8 +18,8 @@ The system is human-in-the-loop by default. It may automate drafting, review, sc
 - Cost and quota awareness for cloud model providers.
 
 ## Working rules for Codex
-- Read `docs/01_IMPLEMENTATION_BLUEPRINT.md` first.
-- Then read `docs/02_SYSTEM_CONTRACTS.md` and `docs/03_ACCEPTANCE_CRITERIA.md`.
+- Read `project_docs/01_IMPLEMENTATION_BLUEPRINT.md` first.
+- Then read `project_docs/02_SYSTEM_CONTRACTS.md` and `project_docs/03_ACCEPTANCE_CRITERIA.md`.
 - Prefer incremental, testable changes over large rewrites.
 - Before adding new dependencies, document why they are needed in the relevant module README or code comments.
 - Keep all business logic behind clearly named services.
