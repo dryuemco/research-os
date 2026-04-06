@@ -14,3 +14,9 @@ router = APIRouter()
 def health(db: Annotated[Session, Depends(get_db_session)]) -> HealthResponse:
     """Liveness and lightweight dependency status endpoint."""
     return HealthService(db).get_health()
+
+
+@router.get("/ready", response_model=HealthResponse)
+def readiness(db: Annotated[Session, Depends(get_db_session)]) -> HealthResponse:
+    """Readiness endpoint used by hosted environments."""
+    return HealthService(db).get_health()
