@@ -16,7 +16,7 @@ from app.schemas.opportunity import (
     OpportunityResponse,
 )
 from app.security.auth import require_permissions
-from app.services.operational_loop_service import OperationalLoopService
+from app.services.opportunity_import_service import OpportunityImportService
 from app.services.opportunity_ingestion_service import OpportunityIngestionService
 from app.services.opportunity_state_service import (
     InvalidOpportunityTransitionError,
@@ -55,32 +55,24 @@ def ingest_dev_fixture(
     ),
 ) -> dict:
     try:
-        payload = json.loads(Path(fixture_path).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise HTTPException(status_code=400, detail=f"Invalid fixture file: {exc}") from exc
-
-    records = payload.get("records", [])
-    if not isinstance(records, list) or not records:
-        raise HTTPException(status_code=400, detail="Fixture file must contain non-empty records[]")
-
-    try:
-        run = OperationalLoopService(db).run_ingestion_job(
-            source_name=payload.get("source_name", "funding_call_scaffold"),
-            trigger_source="opportunities_ingest_dev_fixture",
-            run_matching_after=run_matching_after,
-            records=records,
+        result = OpportunityImportService(db).import_fixture(
+            fixture_path=fixture_path, run_matching_after=run_matching_after
         )
         db.commit()
     except ValueError as exc:
         db.rollback()
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=400,
+            detail={"error_code": "fixture_import_invalid", "message": str(exc)},
+        ) from exc
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail={"error_code": "fixture_import_failed", "message": str(exc)},
+        ) from exc
 
-    return {
-        "job_run_id": run.id,
-        "job_status": run.status.value,
-        "result_summary": run.result_summary,
-        "fixture_path": fixture_path,
-    }
+    return result
 
 
 @router.get("", response_model=list[OpportunityResponse])

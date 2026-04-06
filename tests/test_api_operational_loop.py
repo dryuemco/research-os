@@ -1,4 +1,6 @@
 from app.domain.opportunity_discovery.models import InterestProfile
+from app.services.opportunity_adapters import DEFAULT_ADAPTERS
+from app.services.opportunity_adapters.eu_funding_tenders import EUFundingTendersAdapter
 
 
 def _seed_profile(db_session) -> InterestProfile:
@@ -67,3 +69,34 @@ def test_operational_end_to_end_api_flow(client, db_session):
     mark = client.post(f"/operations/notifications/{notif_id}/read", json={"user_id": "ops-admin"})
     assert mark.status_code == 200
     assert mark.json()["status"] == "read"
+
+
+def test_live_ingestion_api_flow(client, monkeypatch):
+    adapter = EUFundingTendersAdapter()
+    monkeypatch.setattr(
+        adapter,
+        "_fetch_live_payload",
+        lambda **kwargs: [
+            {
+                "source_record_id": "HORIZON-LIVE-001",
+                "payload": {
+                    "identifier": "HORIZON-LIVE-001",
+                    "title": "Live horizon call",
+                    "description": "horizon ai climate",
+                    "programme": "Horizon Europe",
+                    "status": "OPEN",
+                },
+            }
+        ],
+    )
+    monkeypatch.setitem(DEFAULT_ADAPTERS, "eu_funding_tenders", adapter)
+
+    response = client.post(
+        "/operations/jobs/ingestion/live",
+        json={"programmes": ["horizon", "erasmus+"], "limit": 10, "run_matching_after": False},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["source_name"] == "eu_funding_tenders"
+    assert body["result_summary"]["created_count"] == 1
+    assert len(body["sample_opportunities"]) >= 1

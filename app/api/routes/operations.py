@@ -1,19 +1,28 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.db.session import get_db_session
+from app.domain.common.enums import Permission
+from app.domain.opportunity_discovery.models import Opportunity
 from app.schemas.operations import (
+    DemoBootstrapRequest,
     MarkNotificationReadRequest,
     MatchingRunResponse,
     NotificationResponse,
     OperationalJobRunResponse,
     TriggerIngestionRequest,
+    TriggerLiveIngestionRequest,
     TriggerMatchingRequest,
 )
+from app.security.auth import require_permissions
+from app.services.demo_seed_service import DemoSeedService
 from app.services.notification_service import NotificationService
 from app.services.operational_loop_service import OperationalLoopService
+from app.services.opportunity_import_service import OpportunityImportService
 from app.services.source_registry_service import SourceRegistryService
 
 router = APIRouter()
@@ -114,3 +123,75 @@ def mark_notification_read(
         db.rollback()
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return NotificationResponse.model_validate(item)
+
+
+@router.post("/jobs/ingestion/live")
+def trigger_live_ingestion(
+    request: TriggerLiveIngestionRequest,
+    db: Annotated[Session, Depends(get_db_session)],
+) -> dict:
+    normalized_programmes = [item.strip().lower() for item in request.programmes if item.strip()]
+    try:
+        result = OpportunityImportService(db).ingest_live_eu_funding(
+            programmes=normalized_programmes,
+            limit=request.limit,
+            run_matching_after=request.run_matching_after,
+        )
+        samples = db.scalars(
+            select(Opportunity)
+            .where(Opportunity.source_program.in_(normalized_programmes))
+            .order_by(Opportunity.created_at.desc())
+            .limit(5)
+        ).all()
+        db.commit()
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=502, detail=f"Live ingestion failed: {exc}") from exc
+
+    return {
+        **result,
+        "sample_opportunities": [
+            {
+                "id": item.id,
+                "external_id": item.external_id,
+                "title": item.title,
+                "source_program": item.source_program,
+                "deadline_at": item.deadline_at,
+            }
+            for item in samples
+        ],
+    }
+
+
+@router.post("/bootstrap/demo")
+def bootstrap_demo_data(
+    request: DemoBootstrapRequest,
+    db: Annotated[Session, Depends(get_db_session)],
+    _: Annotated[object, Depends(require_permissions(Permission.OPPORTUNITY_APPROVE))],
+) -> dict:
+    if not request.confirm:
+        raise HTTPException(
+            status_code=400,
+            detail="Set confirm=true to run demo bootstrap mutations.",
+        )
+    try:
+        result = DemoSeedService(db).bootstrap(
+            fixture_path=request.fixture_path or get_settings().operational_source_fixture_path,
+            reset_demo_state=request.reset_demo_state,
+            create_demo_proposal=request.create_demo_proposal,
+        )
+        db.commit()
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return {
+        "status": "ok",
+        "opportunities_loaded": result.opportunities_loaded,
+        "matches_created": result.matches_created,
+        "notifications_created": result.notifications_created,
+        "proposal_created": result.proposal_created,
+    }

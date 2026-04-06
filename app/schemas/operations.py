@@ -26,6 +26,14 @@ class TriggerIngestionRequest(BaseModel):
     run_matching_after: bool = True
 
 
+class TriggerLiveIngestionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    programmes: list[str] = Field(default_factory=lambda: ["horizon", "erasmus+"])
+    limit: int = Field(default=50, ge=1, le=100)
+    run_matching_after: bool = True
+
+
 class TriggerMatchingRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -82,3 +90,12 @@ class MarkNotificationReadRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     user_id: str
+
+
+class DemoBootstrapRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    confirm: bool = False
+    reset_demo_state: bool = False
+    create_demo_proposal: bool = True
+    fixture_path: str | None = None

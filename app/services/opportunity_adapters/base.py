@@ -27,7 +27,7 @@ class OpportunitySourceAdapter(ABC):
     def normalize(self, source_record_id: str, payload: dict) -> OpportunityNormalized:
         """Normalize provider payload into contract-compliant opportunity data."""
 
-    def fetch_records(self) -> list["SourceAdapterRecord"]:
+    def fetch_records(self, **kwargs) -> list["SourceAdapterRecord"]:
         """Optional pull path for scheduled ingestion runs."""
         return []
 

@@ -67,12 +67,14 @@ This repository contains a production-credible backend foundation for a Research
 - `GET /ui`
 - `GET /operations/sources`
 - `POST /operations/jobs/ingestion`
+- `POST /operations/jobs/ingestion/live`
 - `POST /operations/jobs/matching`
 - `POST /operations/scheduler/tick`
 - `GET /operations/jobs`
 - `GET /operations/matching-runs`
 - `GET /operations/notifications`
 - `POST /operations/notifications/{notification_id}/read`
+- `POST /operations/bootstrap/demo`
 - `GET /intelligence/retrieval/backends`
 - `POST /intelligence/retrieval/preview`
 - `POST /intelligence/partners`
@@ -184,14 +186,31 @@ Use this when the backend is healthy but mostly empty and you need dashboard-pop
 - Default fixture path comes from `OPERATIONAL_SOURCE_FIXTURE_PATH` (default: `./config/dev_source_payloads.example.json`).
 - Useful for pilot operator demos directly from API docs without building request JSON manually.
 
-### 4) Minimal endpoint order for demo verification
+### 4) Live official-source ingestion (Funding & Tenders Portal)
+- Canonical live source adapter: `eu_funding_tenders` (EU Funding & Tenders Portal).
+- Official source strategy:
+  - Horizon Europe and Erasmus+ calls are fetched from the EU Funding & Tenders canonical opportunity feed.
+  - Erasmus+ programme pages remain supplementary context, while call discovery remains anchored to Funding & Tenders.
+- Trigger endpoint: `POST /operations/jobs/ingestion/live`
+- Example body:
+  ```json
+  {
+    "programmes": ["horizon", "erasmus+"],
+    "limit": 50,
+    "run_matching_after": true
+  }
+  ```
+- The API response includes created/updated/unchanged/failed counts and a sample list of ingested opportunities.
+
+### 5) Minimal endpoint order for demo verification
 1. `POST /opportunities/ingest/dev/fixture`
-2. `GET /dashboard/summary`
-3. `GET /dashboard/opportunities`
-4. `GET /dashboard/matches`
-5. `GET /dashboard/operations/jobs`
-6. `GET /dashboard/operations/notifications`
-7. `GET /dashboard/proposals`
+2. `POST /operations/jobs/ingestion/live`
+3. `GET /dashboard/summary`
+4. `GET /dashboard/opportunities`
+5. `GET /dashboard/matches`
+6. `GET /dashboard/operations/jobs`
+7. `GET /dashboard/operations/notifications`
+8. `GET /dashboard/proposals`
 
 If seed data is loaded, these lists/counters should be non-empty. If no data is loaded, endpoints should continue returning clean empty/degraded payloads (not hard errors).
 

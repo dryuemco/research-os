@@ -24,7 +24,13 @@ This iteration adds the first operational loop for internal pilot usage:
 ## Source execution flow
 - Source adapters remain responsible for normalization and optional record fetching.
 - `funding_call_scaffold` adapter can pull dev fixtures from `OPERATIONAL_SOURCE_FIXTURE_PATH`.
+- `eu_funding_tenders` adapter is the canonical live source path for Horizon and Erasmus+ opportunities from the Funding & Tenders portal.
 - Operational ingestion emits run summary counts and optional change notifications.
+
+## Live ingestion trigger
+- `POST /operations/jobs/ingestion/live` runs the live official-source adapter on demand.
+- Supports programme filters and record limits for pilot-safe ingestion.
+- Uses existing ingestion persistence path (`opportunity_ingestion_snapshots` + `opportunity_versions`) so source/version traceability remains intact.
 
 ## Matching operational flow
 - Matching can run:

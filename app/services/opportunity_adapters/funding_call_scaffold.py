@@ -23,7 +23,7 @@ class FundingCallScaffoldAdapter(OpportunitySourceAdapter):
         normalization_version="v2",
     )
 
-    def fetch_records(self) -> list[SourceAdapterRecord]:
+    def fetch_records(self, **kwargs) -> list[SourceAdapterRecord]:
         settings = get_settings()
         fixture = Path(settings.operational_source_fixture_path)
         if not fixture.exists():

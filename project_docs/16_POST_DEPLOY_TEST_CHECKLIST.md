@@ -43,6 +43,7 @@ Use this checklist after every pilot deployment.
 - [ ] run `make seed-dev` once to load demo dataset for dashboard walkthrough
 - [ ] confirm seed script reports non-zero opportunities and matches
 - [ ] trigger `POST /opportunities/ingest/dev/fixture` from API docs
+- [ ] trigger `POST /operations/jobs/ingestion/live` for `["horizon","erasmus+"]`
 - [ ] trigger `POST /operations/jobs/ingestion` from API docs
 - [ ] confirm `GET /operations/jobs` has a run entry
 - [ ] confirm notifications update for configured dashboard user

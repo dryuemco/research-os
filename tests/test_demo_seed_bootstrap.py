@@ -71,3 +71,28 @@ def test_ingest_dev_fixture_endpoint_runs_ingestion_and_matching(client, db_sess
     assert summary.status_code == 200
     assert summary.json()["opportunities"] >= 1
     assert summary.json()["matches"] >= 1
+
+
+def test_ingest_dev_fixture_returns_structured_error_for_malformed_json(client, tmp_path):
+    fixture_path = tmp_path / "bad.json"
+    fixture_path.write_text("{ not valid json", encoding="utf-8")
+
+    response = client.post(
+        "/opportunities/ingest/dev/fixture",
+        params={"fixture_path": str(fixture_path)},
+    )
+    assert response.status_code == 400
+    detail = response.json()["detail"]
+    assert detail["error_code"] == "fixture_import_invalid"
+    assert "Fixture JSON is invalid" in detail["message"]
+
+
+def test_demo_bootstrap_admin_endpoint(client):
+    response = client.post(
+        "/operations/bootstrap/demo",
+        json={"confirm": True, "reset_demo_state": False, "create_demo_proposal": False},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["opportunities_loaded"] >= 1

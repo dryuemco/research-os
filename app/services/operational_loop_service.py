@@ -110,6 +110,7 @@ class OperationalLoopService:
         trigger_source: str,
         run_matching_after: bool,
         records: list[dict] | None = None,
+        fetch_filters: dict | None = None,
         job_config_id: str | None = None,
     ) -> OperationalJobRun:
         run = OperationalJobRun(
@@ -126,14 +127,18 @@ class OperationalLoopService:
 
         ingestion = OpportunityIngestionService(self.db)
         adapter = self.registry.get(source_name)
-        raw_records = records or [
-            {"source_record_id": r.source_record_id, "payload": r.payload}
-            for r in adapter.fetch_records()
-        ]
-
-        created = updated = unchanged = failed = 0
-        outcomes: list[IngestionOutcome] = []
         try:
+            if records is None:
+                raw_records = [
+                    {"source_record_id": r.source_record_id, "payload": r.payload}
+                    for r in adapter.fetch_records(**(fetch_filters or {}))
+                ]
+            else:
+                raw_records = records
+
+            created = updated = unchanged = failed = 0
+            errors: list[dict] = []
+            outcomes: list[IngestionOutcome] = []
             for item in raw_records:
                 try:
                     _, outcome = ingestion.ingest_dev_payload_with_result(
@@ -152,16 +157,19 @@ class OperationalLoopService:
                         unchanged += 1
                 except Exception as exc:  # pragma: no cover
                     failed += 1
-                    run.error_summary = {
+                    error_item = {
                         "message": str(exc),
                         "source_record_id": item.get("source_record_id"),
                     }
+                    errors.append(error_item)
+                    run.error_summary = error_item
             run.result_summary = {
                 "total_records": len(raw_records),
                 "created_count": created,
                 "updated_count": updated,
                 "unchanged_count": unchanged,
                 "failed_count": failed,
+                "errors": errors,
             }
             run.status = (
                 OperationalJobStatus.SUCCEEDED
@@ -208,6 +216,14 @@ class OperationalLoopService:
             run.status = OperationalJobStatus.FAILED
             run.finished_at = datetime.now(UTC)
             run.error_summary = {"message": str(exc)}
+            run.result_summary = {
+                "total_records": 0,
+                "created_count": 0,
+                "updated_count": 0,
+                "unchanged_count": 0,
+                "failed_count": 1,
+                "errors": [run.error_summary],
+            }
             self.db.add(run)
             self.db.flush()
             self._audit_job_event(run, "operational_job_failed")

@@ -59,6 +59,11 @@ class Settings(BaseSettings):
         default="./config/dev_source_payloads.example.json",
         alias="OPERATIONAL_SOURCE_FIXTURE_PATH",
     )
+    eu_funding_api_url: str = Field(
+        default="https://ec.europa.eu/info/funding-tenders/opportunities/data/topicSearch",
+        alias="EU_FUNDING_API_URL",
+    )
+    eu_funding_timeout_seconds: int = Field(default=20, alias="EU_FUNDING_TIMEOUT_SECONDS")
     allowed_origins: str = Field(default="", alias="ALLOWED_ORIGINS")
     github_pages_url: str | None = Field(
         default="https://dryuemco.github.io",
