@@ -6,9 +6,9 @@ This document tells Codex how to approach implementation work in this repository
 ## Startup procedure
 1. Read `AGENTS.md`.
 2. Read:
-   - `docs/01_IMPLEMENTATION_BLUEPRINT.md`
-   - `docs/02_SYSTEM_CONTRACTS.md`
-   - `docs/03_ACCEPTANCE_CRITERIA.md`
+   - `project_docs/01_IMPLEMENTATION_BLUEPRINT.md`
+   - `project_docs/02_SYSTEM_CONTRACTS.md`
+   - `project_docs/03_ACCEPTANCE_CRITERIA.md`
 3. Inspect repository structure.
 4. Summarize missing bootstrap elements.
 5. Propose the smallest useful first implementation slice.
