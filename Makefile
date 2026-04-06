@@ -33,5 +33,10 @@ run-worker:
 run-ops:
 	$(PYTHON) -m app.scripts.run_operational_loop
 
+validate-deploy:
+	test -f render.yaml
+	test -f pages/index.html
+	test -f .github/workflows/deploy-pages.yml
+
 check:
 	ruff check . && pytest -q

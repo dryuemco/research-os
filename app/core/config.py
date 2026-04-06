@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     app_host: str = Field(default="0.0.0.0", alias="APP_HOST")
     app_port: int = Field(default=8000, alias="APP_PORT")
     app_debug: bool = Field(default=False, alias="APP_DEBUG")
+    app_public_url: str | None = Field(default=None, alias="APP_PUBLIC_URL")
+    docs_enabled: bool = Field(default=True, alias="DOCS_ENABLED")
     database_url: str = Field(
         default="postgresql+psycopg://postgres:postgres@localhost:5432/research_os",
         alias="DATABASE_URL",
@@ -53,6 +55,13 @@ class Settings(BaseSettings):
         default="./config/dev_source_payloads.example.json",
         alias="OPERATIONAL_SOURCE_FIXTURE_PATH",
     )
+    allowed_origins: str = Field(default="", alias="ALLOWED_ORIGINS")
+    github_pages_url: str | None = Field(default=None, alias="GITHUB_PAGES_URL")
+
+    def cors_origins(self) -> list[str]:
+        if not self.allowed_origins.strip():
+            return []
+        return [item.strip() for item in self.allowed_origins.split(",") if item.strip()]
 
 
 @lru_cache

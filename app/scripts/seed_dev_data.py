@@ -21,22 +21,6 @@ def _seed_user(session) -> User:
     return user
 
 
-def _seed_user(session) -> User:
-    user = session.query(User).filter(User.email == "pilot-admin@example.org").first()
-    if user is None:
-        user = User(
-            email="pilot-admin@example.org",
-            display_name="Pilot Admin",
-            role=UserRole.ADMIN,
-            team_name="grant-office",
-            org_name="rpos-internal",
-            is_active=True,
-        )
-        session.add(user)
-        session.flush()
-    return user
-
-
 def main() -> None:
     session = SessionLocal()
     try:

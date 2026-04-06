@@ -94,6 +94,11 @@ This repository contains a production-credible backend foundation for a Research
 4. (Optional) Run `make seed-dev` to seed one development interest profile.
 5. Run `make test` for the current test suite.
 
+## Internet-accessible pilot hosting (GitHub Pages + Render)
+- Static public entry page is in `pages/` and deployed via GitHub Actions workflow (`.github/workflows/deploy-pages.yml`).
+- Stateful backend/worker/database are deployed on Render using `render.yaml`.
+- See `docs/14_PILOT_HOSTING_GITHUB_PAGES_RENDER.md` for full setup and smoke tests.
+
 ## Important guardrails
 - Human approval remains mandatory before proposal drafting or submission-related work.
 - Human approval is required for high-risk proposal transitions (e.g., approval for export).
@@ -140,3 +145,8 @@ This repository contains a production-credible backend foundation for a Research
 - Scheduler can be run with `make run-ops`; due jobs are executed based on `next_run_at`.
 - Source ingestion supports fixture-backed pull mode via `OPERATIONAL_SOURCE_FIXTURE_PATH`.
 - Notifications are currently in-app/internal and queryable via `/operations/notifications`.
+
+## Deployment config notes
+- CORS is controlled by `ALLOWED_ORIGINS` (comma-separated); default is closed if unset.
+- API docs can be disabled via `DOCS_ENABLED=false` for tighter pilot posture.
+- For hosted pilot settings, use `.env.pilot.example` as the template baseline.
