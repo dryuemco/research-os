@@ -1,10 +1,31 @@
 from app.db.session import SessionLocal
+from app.domain.common.enums import UserRole
+from app.domain.identity_models import User
 from app.domain.opportunity_discovery.models import InterestProfile
+from app.domain.partner_intelligence.models import PartnerProfile
+from app.services.operational_loop_service import OperationalLoopService
+
+
+def _seed_user(session) -> User:
+    user = session.query(User).filter(User.email == "pilot-admin@example.org").first()
+    if user is None:
+        user = User(
+            email="pilot-admin@example.org",
+            display_name="Pilot Admin",
+            role=UserRole.ADMIN,
+            team_name="grant-office",
+            org_name="rpos-internal",
+            is_active=True,
+        )
+        session.add(user)
+        session.flush()
+    return user
 
 
 def main() -> None:
     session = SessionLocal()
     try:
+        user = _seed_user(session)
         profile = (
             session.query(InterestProfile)
             .filter(InterestProfile.name == "Default Dev Profile")
@@ -13,7 +34,7 @@ def main() -> None:
         if profile is None:
             session.add(
                 InterestProfile(
-                    user_id="dev-user",
+                    user_id=user.id,
                     name="Default Dev Profile",
                     parameters_json={
                         "allowed_programs": ["Horizon Europe", "Erasmus+"],
@@ -22,10 +43,29 @@ def main() -> None:
                     },
                 )
             )
-            session.commit()
-            print("Seeded default dev interest profile")
-        else:
-            print("Dev profile already present")
+        OperationalLoopService(session).ensure_default_jobs()
+        partner = (
+            session.query(PartnerProfile)
+            .filter(PartnerProfile.partner_name == "Demo Partner Lab")
+            .first()
+        )
+        if partner is None:
+            session.add(
+                PartnerProfile(
+                    partner_name="Demo Partner Lab",
+                    legal_name="Demo Partner Research Lab",
+                    country_code="DE",
+                    organization_type="research_org",
+                    capability_tags=["ai", "climate", "evaluation"],
+                    program_participation=["horizon"],
+                    role_suitability={"coordinator": 0.8, "beneficiary": 0.9},
+                    source_metadata={"source": "seed"},
+                    intelligence_notes="Seeded partner profile for pilot demos.",
+                    active=True,
+                )
+            )
+        session.commit()
+        print(f"Seeded pilot user id={user.id}")
     finally:
         session.close()
 
