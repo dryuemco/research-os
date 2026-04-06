@@ -1,31 +1,53 @@
+import argparse
+
+from app.core.config import get_settings
 from app.db.session import SessionLocal
-from app.domain.opportunity_discovery.models import InterestProfile
+from app.services.demo_seed_service import DemoSeedService
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Bootstrap deterministic demo data for pilot walkthroughs."
+    )
+    parser.add_argument(
+        "--confirm",
+        action="store_true",
+        help="Required safety switch to run seed/bootstrap mutations.",
+    )
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Reset previously seeded demo profile/matches/notifications and reload.",
+    )
+    parser.add_argument(
+        "--no-proposal",
+        action="store_true",
+        help="Skip creating a demo proposal workspace from a shortlisted opportunity.",
+    )
+    parser.add_argument(
+        "--fixture-path",
+        default=get_settings().operational_source_fixture_path,
+        help="Path to fixture JSON with records[] for ingestion.",
+    )
+    args = parser.parse_args()
+
+    if not args.confirm:
+        raise SystemExit("Refusing to run without --confirm (explicit invocation required).")
+
     session = SessionLocal()
     try:
-        profile = (
-            session.query(InterestProfile)
-            .filter(InterestProfile.name == "Default Dev Profile")
-            .first()
+        result = DemoSeedService(session).bootstrap(
+            fixture_path=args.fixture_path,
+            reset_demo_state=args.reset,
+            create_demo_proposal=not args.no_proposal,
         )
-        if profile is None:
-            session.add(
-                InterestProfile(
-                    user_id="dev-user",
-                    name="Default Dev Profile",
-                    parameters_json={
-                        "allowed_programs": ["Horizon Europe", "Erasmus+"],
-                        "preferred_keywords": ["ai", "climate", "health"],
-                        "weights": {"keyword_overlap": 0.7, "budget_fit": 0.3},
-                    },
-                )
-            )
-            session.commit()
-            print("Seeded default dev interest profile")
-        else:
-            print("Dev profile already present")
+        session.commit()
+        print(
+            "Demo bootstrap complete "
+            f"(opportunities_loaded={result.opportunities_loaded}, "
+            f"matches={result.matches_created}, notifications={result.notifications_created}, "
+            f"proposal_created={result.proposal_created})"
+        )
     finally:
         session.close()
 
