@@ -17,6 +17,9 @@ from app.schemas.memory import (
 
 class LexicalRetrievalBackend:
     backend_name = "lexical"
+    supports_semantic = False
+    supports_filters = True
+    supports_hybrid_fusion = True
 
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -51,6 +54,8 @@ class LexicalRetrievalBackend:
                     block=ReusableBlockResponse.model_validate(item),
                     relevance_score=round(score, 4),
                     confidence=round(math.sqrt(score), 4),
+                    backend_name=self.backend_name,
+                    normalized_score=round(score, 4),
                     provenance=BlockProvenance(
                         block_id=item.id,
                         block_key=item.block_key,

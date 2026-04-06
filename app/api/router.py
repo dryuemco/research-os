@@ -4,6 +4,7 @@ from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.decomposition import router as decomposition_router
 from app.api.routes.execution_runtime import router as execution_runtime_router
 from app.api.routes.health import router as health_router
+from app.api.routes.intelligence import router as intelligence_router
 from app.api.routes.internal_ui import router as internal_ui_router
 from app.api.routes.matching import router as matching_router
 from app.api.routes.memory import router as memory_router
@@ -32,5 +33,6 @@ api_router.include_router(
 )
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(memory_router, prefix="/memory", tags=["memory"])
+api_router.include_router(intelligence_router, prefix="/intelligence", tags=["intelligence"])
 api_router.include_router(operations_router, prefix="/operations", tags=["operations"])
 api_router.include_router(internal_ui_router, prefix="/ui", tags=["internal_ui"])

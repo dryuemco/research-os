@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -91,7 +94,30 @@ class RetrievalQuery(BaseModel):
 
     query_text: str
     limit: int = 5
+    task_type: str = "concept_note"
     filters: RetrievalFilter = Field(default_factory=RetrievalFilter)
+    policy: RetrievalPolicy | None = None
+
+
+class RetrievalBackendMode(StrEnum):
+    LEXICAL = "lexical"
+    VECTOR = "vector"
+    HYBRID = "hybrid"
+
+
+class RetrievalPolicy(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    backend_mode: RetrievalBackendMode = RetrievalBackendMode.HYBRID
+    lexical_weight: float = 0.6
+    vector_weight: float = 0.4
+    category_weights: dict[MemoryCategory, float] = Field(default_factory=dict)
+    max_context_chars: int = 6000
+    max_per_category: int = 2
+    min_confidence: float = 0.2
+    freshness_bias: float = 0.0
+    redundancy_penalty: float = 0.15
+    approved_only_override: bool | None = None
 
 
 class BlockProvenance(BaseModel):
@@ -110,8 +136,11 @@ class RetrievalResult(BaseModel):
     block: ReusableBlockResponse
     relevance_score: float
     confidence: float
+    backend_name: str = "lexical"
+    normalized_score: float = 0.0
     provenance: BlockProvenance
     rationale: list[str] = Field(default_factory=list)
+    selected_reason: str | None = None
 
 
 class RetrievalContextAssembly(BaseModel):

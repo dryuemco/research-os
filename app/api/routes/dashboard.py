@@ -14,6 +14,8 @@ from app.domain.opportunity_discovery.models import MatchResult, Opportunity
 from app.domain.proposal_factory.models import Proposal, ReviewRound
 from app.schemas.audit import AuditEventSchema
 from app.services.dashboard_service import DashboardService
+from app.services.partner_intelligence_service import PartnerIntelligenceService
+from app.services.proposal_quality_service import ProposalQualityService
 
 router = APIRouter()
 
@@ -306,3 +308,35 @@ def dashboard_notifications(
             for n in items
         ]
     }
+
+
+@router.get("/intelligence/partners")
+def dashboard_partner_intelligence(
+    db: Annotated[Session, Depends(get_db_session)],
+    active_only: bool = Query(default=True),
+) -> dict:
+    items = PartnerIntelligenceService(db).list_partners(active_only=active_only)
+    return {
+        "items": [
+            {
+                "id": p.id,
+                "partner_name": p.partner_name,
+                "country_code": p.country_code,
+                "capability_tags": p.capability_tags,
+            }
+            for p in items
+        ]
+    }
+
+
+@router.get("/intelligence/proposals/{proposal_id}/quality")
+def dashboard_proposal_quality(
+    proposal_id: str,
+    db: Annotated[Session, Depends(get_db_session)],
+    round_number: int | None = Query(default=None),
+) -> dict:
+    try:
+        summary = ProposalQualityService(db).summarize(proposal_id, round_number=round_number)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return summary.model_dump()

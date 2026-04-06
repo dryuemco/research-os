@@ -18,15 +18,20 @@ class ContextAssemblyService:
         return self._assemble("decomposition", query)
 
     def _assemble(self, purpose: str, query: RetrievalQuery) -> RetrievalContextAssembly:
-        results = self.retrieval.retrieve(query)
+        query_with_purpose = query.model_copy(update={"task_type": purpose})
+        results = self.retrieval.retrieve(query_with_purpose)
         missing: list[str] = []
         if not results:
             missing.append("No approved institutional evidence matched this query")
-        if len(results) < min(query.limit, 3):
+        if len(results) < min(query_with_purpose.limit, 3):
             missing.append("Limited evidence coverage for requested context depth")
+        if query_with_purpose.filters.approved_only and any(
+            r.block.approval_status.value != "approved" for r in results
+        ):
+            missing.append("Some context blocks are not approved evidence")
         return RetrievalContextAssembly(
             purpose=purpose,
-            query=query,
+            query=query_with_purpose,
             context_blocks=results,
             missing_context=missing,
         )

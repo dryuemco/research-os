@@ -72,6 +72,12 @@ This repository contains a production-credible backend foundation for a Research
 - `GET /operations/matching-runs`
 - `GET /operations/notifications`
 - `POST /operations/notifications/{notification_id}/read`
+- `GET /intelligence/retrieval/backends`
+- `POST /intelligence/retrieval/preview`
+- `POST /intelligence/partners`
+- `GET /intelligence/partners`
+- `POST /intelligence/partners/fit`
+- `GET /intelligence/proposal-quality/{proposal_id}`
 
 ## Repository layout
 - `app/api` - API routes and router wiring
@@ -145,6 +151,11 @@ This repository contains a production-credible backend foundation for a Research
 - Scheduler can be run with `make run-ops`; due jobs are executed based on `next_run_at`.
 - Source ingestion supports fixture-backed pull mode via `OPERATIONAL_SOURCE_FIXTURE_PATH`.
 - Notifications are currently in-app/internal and queryable via `/operations/notifications`.
+
+## Intelligence-quality notes
+- Retrieval is policy-driven and now supports hybrid orchestration (lexical + vector-ready contract backend).
+- Partner intelligence provides typed partner profiles and consortium-fit preview scoring with rationale/red flags.
+- Proposal quality summarization aggregates reviewer comments into prioritized evaluator-facing issue signals and next-action recommendations.
 
 ## Deployment config notes
 - CORS is controlled by `ALLOWED_ORIGINS` (comma-separated); default is closed if unset.

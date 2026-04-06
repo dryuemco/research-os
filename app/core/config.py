@@ -38,6 +38,9 @@ class Settings(BaseSettings):
 
     internal_api_key: str | None = Field(default="dev-internal-key", alias="INTERNAL_API_KEY")
     retrieval_backend: str = Field(default="lexical", alias="RETRIEVAL_BACKEND")
+    retrieval_default_mode: str = Field(default="hybrid", alias="RETRIEVAL_DEFAULT_MODE")
+    retrieval_lexical_weight: float = Field(default=0.6, alias="RETRIEVAL_LEXICAL_WEIGHT")
+    retrieval_vector_weight: float = Field(default=0.4, alias="RETRIEVAL_VECTOR_WEIGHT")
     artifact_storage_backend: str = Field(default="local_fs", alias="ARTIFACT_STORAGE_BACKEND")
     artifact_storage_root: str = Field(default="./artifacts", alias="ARTIFACT_STORAGE_ROOT")
     artifact_download_secret: str = Field(

@@ -9,6 +9,7 @@ from app.domain.execution_orchestrator.runtime_models import ExecutionRun
 from app.domain.institutional_memory.models import ExportPackage, ReusableEvidenceBlock
 from app.domain.operations.models import MatchingRun, Notification, OperationalJobRun
 from app.domain.opportunity_discovery.models import MatchResult, Opportunity
+from app.domain.partner_intelligence.models import PartnerProfile
 from app.domain.proposal_factory.models import Proposal
 
 
@@ -32,6 +33,9 @@ class DashboardService:
             ),
             "matching_runs": self.db.scalar(select(func.count()).select_from(MatchingRun)) or 0,
             "notifications": self.db.scalar(select(func.count()).select_from(Notification)) or 0,
+            "partner_profiles": (
+                self.db.scalar(select(func.count()).select_from(PartnerProfile)) or 0
+            ),
         }
 
     def audit_timeline(self, *, limit: int = 50, offset: int = 0) -> list[AuditEvent]:

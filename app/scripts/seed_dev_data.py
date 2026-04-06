@@ -2,6 +2,7 @@ from app.db.session import SessionLocal
 from app.domain.common.enums import UserRole
 from app.domain.identity_models import User
 from app.domain.opportunity_discovery.models import InterestProfile
+from app.domain.partner_intelligence.models import PartnerProfile
 from app.services.operational_loop_service import OperationalLoopService
 
 
@@ -43,6 +44,26 @@ def main() -> None:
                 )
             )
         OperationalLoopService(session).ensure_default_jobs()
+        partner = (
+            session.query(PartnerProfile)
+            .filter(PartnerProfile.partner_name == "Demo Partner Lab")
+            .first()
+        )
+        if partner is None:
+            session.add(
+                PartnerProfile(
+                    partner_name="Demo Partner Lab",
+                    legal_name="Demo Partner Research Lab",
+                    country_code="DE",
+                    organization_type="research_org",
+                    capability_tags=["ai", "climate", "evaluation"],
+                    program_participation=["horizon"],
+                    role_suitability={"coordinator": 0.8, "beneficiary": 0.9},
+                    source_metadata={"source": "seed"},
+                    intelligence_notes="Seeded partner profile for pilot demos.",
+                    active=True,
+                )
+            )
         session.commit()
         print(f"Seeded pilot user id={user.id}")
     finally:

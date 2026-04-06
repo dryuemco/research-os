@@ -42,6 +42,7 @@ from app.domain.opportunity_discovery.models import (  # noqa: F401
     OpportunityIngestionSnapshot,
     OpportunityVersion,
 )
+from app.domain.partner_intelligence.models import PartnerProfile  # noqa: F401
 from app.domain.proposal_factory.models import (  # noqa: F401
     Proposal,
     ProposalSection,
