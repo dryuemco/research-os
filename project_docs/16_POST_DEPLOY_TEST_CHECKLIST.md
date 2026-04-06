@@ -3,8 +3,10 @@
 Use this checklist after every pilot deployment.
 
 ## 1) Render web deploy checks
+- [ ] migration command `alembic upgrade head` executed for current release
 - [ ] `GET /health` returns 200
 - [ ] `GET /health/ready` returns 200
+- [ ] `/health/ready` reports `dependencies.migrations.status = ok`
 - [ ] `GET /docs` loads API docs (if `DOCS_ENABLED=true`)
 - [ ] `GET /ui` loads internal UI page
 - [ ] logs show startup diagnostics and no immediate process exit

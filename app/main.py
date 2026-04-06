@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
+from app.db.session import session_scope
+from app.services.health_service import HealthService
 
 try:
     settings = get_settings()
@@ -46,6 +48,11 @@ def _startup_summary() -> dict[str, object]:
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings.validate_deployment_readiness()
+    if settings.is_deployed_env():
+        with session_scope() as session:
+            migration_health = HealthService(session)._migration_health()
+            if migration_health.get("status") != "ok":
+                logger.error("Critical migration health degraded: %s", migration_health)
     if settings.is_deployed_env():
         if settings.internal_api_key in (None, "", "dev-internal-key"):
             logger.warning("INTERNAL_API_KEY is using default value in deployed environment")

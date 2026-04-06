@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -26,6 +27,17 @@ from app.services.opportunity_import_service import OpportunityImportService
 from app.services.source_registry_service import SourceRegistryService
 
 router = APIRouter()
+
+
+def _db_error_payload(exc: Exception, *, default_code: str) -> dict:
+    message = str(exc)
+    if "UndefinedTable" in message or 'relation "' in message:
+        return {
+            "error_code": "database_schema_missing",
+            "message": message,
+            "remediation": "Apply database migrations: alembic upgrade head",
+        }
+    return {"error_code": default_code, "message": message}
 
 
 @router.get("/sources")
@@ -147,9 +159,17 @@ def trigger_live_ingestion(
     except ValueError as exc:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=503,
+            detail=_db_error_payload(exc, default_code="db_error"),
+        ) from exc
     except Exception as exc:
         db.rollback()
-        raise HTTPException(status_code=502, detail=f"Live ingestion failed: {exc}") from exc
+        raise HTTPException(
+            status_code=502, detail=_db_error_payload(exc, default_code="live_ingestion_failed")
+        ) from exc
 
     return {
         **result,
@@ -187,6 +207,17 @@ def bootstrap_demo_data(
     except ValueError as exc:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=503,
+            detail=_db_error_payload(exc, default_code="db_error"),
+        ) from exc
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail=_db_error_payload(exc, default_code="demo_bootstrap_failed")
+        ) from exc
 
     return {
         "status": "ok",

@@ -104,6 +104,11 @@ This repository contains a production-credible backend foundation for a Research
 4. Run `make seed-dev` to load a full pilot demo dataset (opportunities, profile, partners, memory blocks, matching runs, notifications, and one demo proposal workspace when possible).
 5. Run `make test` for the current test suite.
 
+## Production migration requirement (Render)
+- Deploys must run database migrations before enabling ingestion/bootstrap writes.
+- Required command: `alembic upgrade head`.
+- If migrations are not applied, write endpoints may fail with structured `database_schema_missing` errors and `/health/ready` will report degraded migration status.
+
 ## Internet-accessible pilot hosting (GitHub Pages + Render)
 - Static public entry/dashboard is in `docs/` and published directly from the `main` branch (`/docs` folder) via GitHub Pages branch settings.
 - Static dashboard API target is configured in `docs/site-config.js` and defaults to `https://rpos-api.onrender.com`.
@@ -213,6 +218,19 @@ Use this when the backend is healthy but mostly empty and you need dashboard-pop
 8. `GET /dashboard/proposals`
 
 If seed data is loaded, these lists/counters should be non-empty. If no data is loaded, endpoints should continue returning clean empty/degraded payloads (not hard errors).
+
+### 6) Swagger verification sequence (production)
+1. `GET /health/ready` and confirm `dependencies.migrations.status == "ok"`.
+2. `POST /operations/bootstrap/demo` with body:
+   ```json
+   {"confirm": true, "reset_demo_state": false, "create_demo_proposal": true}
+   ```
+3. `POST /opportunities/ingest/dev/fixture` (optional fixture reload).
+4. `POST /operations/jobs/ingestion/live` with:
+   ```json
+   {"programmes": ["horizon", "erasmus+"], "limit": 50, "run_matching_after": true}
+   ```
+5. `GET /dashboard/summary` and `GET /dashboard/opportunities`.
 
 ## Intelligence-quality notes
 - Retrieval is policy-driven and now supports hybrid orchestration (lexical + vector-ready contract backend).
