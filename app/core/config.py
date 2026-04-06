@@ -63,9 +63,13 @@ class Settings(BaseSettings):
     github_pages_url: str | None = Field(default=None, alias="GITHUB_PAGES_URL")
 
     def cors_origins(self) -> list[str]:
-        if not self.allowed_origins.strip():
-            return []
-        return [item.strip() for item in self.allowed_origins.split(",") if item.strip()]
+        origins: list[str] = []
+        if self.allowed_origins.strip():
+            origins.extend(item.strip().rstrip("/") for item in self.allowed_origins.split(","))
+        if self.github_pages_url:
+            origins.append(self.github_pages_url.strip().rstrip("/"))
+        deduped = [item for item in dict.fromkeys(origins) if item]
+        return deduped
 
     def sqlalchemy_database_url(self) -> str:
         """
@@ -80,6 +84,25 @@ class Settings(BaseSettings):
         if url.startswith("postgresql://") and "+psycopg" not in url:
             return "postgresql+psycopg://" + url[len("postgresql://") :]
         return url
+
+    def uses_local_database_fallback(self) -> bool:
+        url = self.sqlalchemy_database_url()
+        return (
+            "@localhost:" in url
+            or "@127.0.0.1:" in url
+            or "@db:" in url
+        )
+
+    def is_deployed_env(self) -> bool:
+        return self.app_env.lower() in {"pilot", "staging", "prod", "production"}
+
+    def validate_deployment_readiness(self) -> None:
+        if self.is_deployed_env() and self.uses_local_database_fallback():
+            raise ValueError(
+                "DATABASE_URL resolves to a local host fallback "
+                "while APP_ENV indicates a deployed environment. "
+                "Set DATABASE_URL to the managed external database URL."
+            )
 
     def runtime_host(self) -> str:
         return self.app_host or "0.0.0.0"

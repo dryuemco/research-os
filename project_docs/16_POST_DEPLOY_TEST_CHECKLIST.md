@@ -14,6 +14,7 @@ Use this checklist after every pilot deployment.
 - [ ] `docs/site-config.js` backend URL points to the intended Render API
 - [ ] navigation works for all dashboard pages
 - [ ] no broken links in header actions
+- [ ] browser console has no CORS errors for dashboard API calls
 
 ## 3) Functional dashboard checks
 - [ ] opportunities page loads and shows rows or explicit empty state

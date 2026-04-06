@@ -37,4 +37,6 @@ def test_startup_summary_includes_non_secret_runtime_fields():
     assert "host" in summary
     assert "port" in summary
     assert "database_url_scheme" in summary
+    assert "database_uses_local_fallback" in summary
+    assert "cors_origins" in summary
     assert "using_default_internal_api_key" in summary

@@ -115,6 +115,8 @@ This repository contains a production-credible backend foundation for a Research
 - `DATABASE_URL` is normalized for SQLAlchemy when hosted platforms provide `postgres://...` URLs.
 - Docker runtime also uses `CMD ["python", "-m", "app.main"]` from `Dockerfile`.
 - Required Render env vars: `DATABASE_URL`, `INTERNAL_API_KEY`, `ARTIFACT_DOWNLOAD_SECRET` (plus optional `OPENAI_COMPATIBLE_API_KEY` when used).
+- For this pilot Pages setup, set `ALLOWED_ORIGINS=https://dryuemco.github.io` (comma-separate additional origins if needed).
+- Optional helper: set `GITHUB_PAGES_URL=https://dryuemco.github.io` to auto-include the Pages origin in CORS evaluation.
 
 ## Important guardrails
 - Human approval remains mandatory before proposal drafting or submission-related work.

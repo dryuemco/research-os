@@ -35,6 +35,9 @@
    - `DATABASE_URL` supports hosted `postgres://` values via startup normalization
    - expected runtime command is `python -m app.main` (also set as Docker `CMD`)
    - required env vars for production-like pilot startup: `DATABASE_URL`, `INTERNAL_API_KEY`, `ARTIFACT_DOWNLOAD_SECRET`
+   - recommended CORS/env values for this deployment:
+     - `ALLOWED_ORIGINS=https://dryuemco.github.io`
+     - `GITHUB_PAGES_URL=https://dryuemco.github.io`
 
 ## GitHub Pages setup
 1. In repository settings, enable Pages with **Deploy from a branch**.
@@ -72,6 +75,7 @@ the dashboard shows explicit empty/error states instead of mock data.
 
 ## Connectivity troubleshooting notes
 - If the dashboard shows backend/API errors, verify `ALLOWED_ORIGINS` includes your GitHub Pages URL.
+- Browser console CORS errors (`No 'Access-Control-Allow-Origin' header`) usually mean `ALLOWED_ORIGINS` does not include `https://dryuemco.github.io`.
 - Confirm `docs/site-config.js` points to the intended backend URL.
 - Confirm Render web health (`/health/ready`) is `ok`.
 - Confirm protected endpoints requiring internal auth are not being called by public dashboard pages.

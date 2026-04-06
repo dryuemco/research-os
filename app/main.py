@@ -34,13 +34,16 @@ def _startup_summary() -> dict[str, object]:
         "port": settings.runtime_port(),
         "docs_enabled": settings.docs_enabled,
         "database_url_scheme": settings.sqlalchemy_database_url().split("://", maxsplit=1)[0],
+        "database_uses_local_fallback": settings.uses_local_database_fallback(),
         "cors_origins_count": len(settings.cors_origins()),
+        "cors_origins": settings.cors_origins(),
         "using_default_internal_api_key": default_internal_key,
         "using_default_artifact_download_secret": default_download_secret,
     }
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    settings.validate_deployment_readiness()
     logger.info("FastAPI startup diagnostics: %s", _startup_summary())
     yield
 
@@ -77,6 +80,7 @@ async def request_id_middleware(request, call_next):
 def run() -> None:
     host = settings.runtime_host()
     port = settings.runtime_port()
+    settings.validate_deployment_readiness()
     logger.info("Starting FastAPI runtime with config: %s", _startup_summary())
     try:
         uvicorn.run("app.main:app", host=host, port=port, log_level=settings.log_level.lower())

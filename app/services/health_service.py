@@ -41,5 +41,12 @@ class HealthService:
             status=overall_status,
             app_env=settings.app_env,
             database=database,
-            dependencies={"artifact_storage": {"status": storage_status, "detail": storage_detail}},
+            dependencies={
+                "artifact_storage": {"status": storage_status, "detail": storage_detail},
+                "config": {
+                    "database_uses_local_fallback": settings.uses_local_database_fallback(),
+                    "cors_origins_count": len(settings.cors_origins()),
+                    "cors_origins": settings.cors_origins(),
+                },
+            },
         )
