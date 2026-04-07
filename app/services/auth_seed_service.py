@@ -16,9 +16,9 @@ class AuthSeedService:
 
     def ensure_seed_admin_users(self) -> int:
         created = 0
-        for username, full_name, password in (
-            ("admin1", "Seeded Admin 1", self.settings.seed_admin1_password),
-            ("admin2", "Seeded Admin 2", self.settings.seed_admin2_password),
+        for username, full_name, password, email in (
+            ("admin1", "Seeded Admin 1", self.settings.seed_admin1_password, "admin1@local.invalid"),
+            ("admin2", "Seeded Admin 2", self.settings.seed_admin2_password, "admin2@local.invalid"),
         ):
             user = self.db.scalar(select(User).where(User.username == username))
             if user is not None:
@@ -28,6 +28,7 @@ class AuthSeedService:
                     username=username,
                     password_hash=hash_password(password),
                     full_name=full_name,
+                    email=email,
                     role=UserRole.ADMIN,
                     is_active=True,
                     display_name=full_name,

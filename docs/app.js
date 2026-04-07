@@ -6,6 +6,8 @@ const config = getFrontendConfig();
 const configError = validateFrontendConfig(config);
 const api = new ApiClient(config);
 
+const TOKEN_KEY = 'rpos_access_token';
+
 const dom = {
   banner: document.getElementById('connection-banner'),
   refreshCurrent: document.getElementById('refresh-current'),
@@ -14,7 +16,24 @@ const dom = {
     docs: document.getElementById('docs-link'),
     health: document.getElementById('health-link'),
   },
+  shell: document.querySelector('.shell'),
+  loginMount: document.createElement('section'),
 };
+
+dom.loginMount.id = 'login-gate';
+dom.loginMount.className = 'page active';
+
+function loadToken() {
+  return window.localStorage.getItem(TOKEN_KEY) || '';
+}
+
+function saveToken(token) {
+  window.localStorage.setItem(TOKEN_KEY, token);
+}
+
+function clearToken() {
+  window.localStorage.removeItem(TOKEN_KEY);
+}
 
 function setConnectionBanner(message, kind = '') {
   if (!dom.banner) return;
@@ -81,6 +100,60 @@ function deriveInitialPage() {
   return 'overview';
 }
 
+function renderLoginGate(message = '') {
+  dom.loginMount.innerHTML = `
+    <div class="card">
+      <h2>Login required</h2>
+      <p class="muted">Sign in with your RPOS admin username/password before using the dashboard.</p>
+      ${message ? `<p class="state error">${message}</p>` : ''}
+      <form id="login-form" class="stack" style="max-width: 420px; gap: 10px;">
+        <label>Username<br /><input id="login-username" type="text" required /></label>
+        <label>Password<br /><input id="login-password" type="password" required /></label>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  `;
+
+  const form = document.getElementById('login-form');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const username = document.getElementById('login-username')?.value?.trim();
+    const password = document.getElementById('login-password')?.value || '';
+    if (!username || !password) {
+      renderLoginGate('Username and password are required.');
+      return;
+    }
+    try {
+      const result = await api.post('/auth/login', { username, password }, false);
+      saveToken(result.access_token);
+      api.setBearerToken(result.access_token);
+      bootDashboard();
+    } catch (error) {
+      renderLoginGate(error.message || 'Login failed');
+    }
+  });
+}
+
+function showLoginGate(message = '') {
+  if (dom.shell) {
+    dom.shell.style.display = 'none';
+    dom.shell.insertAdjacentElement('beforebegin', dom.loginMount);
+  }
+  renderLoginGate(message);
+}
+
+function hideLoginGate() {
+  dom.loginMount.remove();
+  if (dom.shell) dom.shell.style.display = '';
+}
+
+function bootDashboard() {
+  hideLoginGate();
+  currentPage = deriveInitialPage();
+  showPage(currentPage);
+  renderCurrentPage();
+}
+
 function init() {
   if (configError) {
     setConnectionBanner(configError, 'error');
@@ -88,9 +161,15 @@ function init() {
   applyHeaderLinks();
   wireNavigation();
   wireRefresh();
-  currentPage = deriveInitialPage();
-  showPage(currentPage);
-  renderCurrentPage();
+
+  const token = loadToken();
+  if (!token) {
+    showLoginGate();
+    return;
+  }
+
+  api.setBearerToken(token);
+  bootDashboard();
 }
 
 init();
