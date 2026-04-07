@@ -21,12 +21,14 @@ from app.domain.partner_intelligence.models import PartnerProfile
 from app.domain.proposal_factory.models import Proposal
 from app.schemas.audit import AuditEventSchema
 from app.schemas.proposal import ProposalWorkspaceCreateRequest
+from app.security.passwords import hash_password
 from app.services.audit_service import AuditService
 from app.services.operational_loop_service import OperationalLoopService
 from app.services.opportunity_state_service import OpportunityStateService
 from app.services.proposal_service import ProposalService
 
 DEMO_USER_EMAIL = "pilot-admin@example.org"
+DEMO_USERNAME = "pilot-admin"
 DEMO_PROFILE_NAME = "Pilot Demo Profile"
 DEMO_DOC_SOURCE_URI = "seed://pilot-demo"
 DEMO_PARTNER_NAMES = ["Demo Partner Lab", "Iberia Health Data Hub"]
@@ -112,11 +114,16 @@ class DemoSeedService:
         return records
 
     def _ensure_demo_user(self) -> User:
-        user = self.db.scalar(select(User).where(User.email == DEMO_USER_EMAIL))
+        user = self.db.scalar(
+            select(User).where((User.username == DEMO_USERNAME) | (User.email == DEMO_USER_EMAIL))
+        )
         if user is not None:
             return user
 
         user = User(
+            username=DEMO_USERNAME,
+            password_hash=hash_password("demo-bootstrap-internal-only"),
+            full_name="Pilot Admin",
             email=DEMO_USER_EMAIL,
             display_name="Pilot Admin",
             role=UserRole.ADMIN,
