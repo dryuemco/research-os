@@ -10,7 +10,11 @@ from app.services.opportunity_adapters.base import AdapterFetchError
 from app.services.opportunity_adapters.eu_funding_tenders import EUFundingTendersAdapter
 
 
-def test_eu_funding_adapter_fetch_records_and_normalize_from_live_payload():
+def test_eu_funding_adapter_fetch_records_and_normalize_from_live_payload(monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("EU_FUNDING_LIVE_ENABLED", "true")
+    get_settings.cache_clear()
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.method == "GET"
         assert request.url.params.get("query") is not None
@@ -42,9 +46,14 @@ def test_eu_funding_adapter_fetch_records_and_normalize_from_live_payload():
     assert normalized.external_id == "HORIZON-CL6-001"
     assert normalized.call_status == "open"
     assert normalized.budget_total == 3500000
+    get_settings.cache_clear()
 
 
 def test_live_ingestion_created_updated_unchanged_classification(db_session, monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("EU_FUNDING_LIVE_ENABLED", "true")
+    get_settings.cache_clear()
     adapter = EUFundingTendersAdapter()
     responses = [
         [
@@ -117,6 +126,10 @@ def test_live_ingestion_created_updated_unchanged_classification(db_session, mon
 
 
 def test_live_ingestion_empty_and_error_paths_are_tracked(db_session, monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("EU_FUNDING_LIVE_ENABLED", "true")
+    get_settings.cache_clear()
     adapter = EUFundingTendersAdapter()
 
     monkeypatch.setattr(adapter, "_fetch_live_payload", lambda **kwargs: [])
@@ -150,7 +163,12 @@ def test_live_ingestion_empty_and_error_paths_are_tracked(db_session, monkeypatc
     assert failed_runs[-1].result_summary["failed_count"] == 1
 
 
-def test_eu_funding_adapter_follows_redirect_for_legacy_url():
+def test_eu_funding_adapter_follows_redirect_for_legacy_url(monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("EU_FUNDING_LIVE_ENABLED", "true")
+    get_settings.cache_clear()
+
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith('/data/topicSearch'):
             return httpx.Response(
@@ -187,20 +205,40 @@ def test_eu_funding_adapter_follows_redirect_for_legacy_url():
 
     assert len(records) == 1
     assert records[0]['source_record_id'] == 'HORIZON-REDIRECT-001'
+    get_settings.cache_clear()
+
+
+def test_eu_funding_adapter_disabled_by_default_returns_source_unavailable(monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.delenv("EU_FUNDING_LIVE_ENABLED", raising=False)
+    get_settings.cache_clear()
+    adapter = EUFundingTendersAdapter()
+
+    with pytest.raises(AdapterFetchError) as exc_info:
+        adapter.fetch_records(programmes=["horizon"], limit=1)
+
+    assert exc_info.value.code == "source_unavailable"
+    assert exc_info.value.diagnostics["category"] == "source_unavailable"
 
 
 @pytest.mark.parametrize(
     ("status_code", "body", "expected_code"),
     [
-        (403, "blocked by robots.txt", "robots_blocked"),
-        (401, "access denied", "unauthorized"),
+        (403, "blocked by robots.txt", "source_unauthorized"),
+        (401, "access denied", "source_unauthorized"),
         (405, "Method Not Allowed", "endpoint_changed"),
         (500, "upstream failure", "source_blocked"),
     ],
 )
 def test_eu_funding_adapter_maps_block_and_endpoint_errors_to_diagnostics(
-    status_code, body, expected_code
+    status_code, body, expected_code, monkeypatch
 ):
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("EU_FUNDING_LIVE_ENABLED", "true")
+    get_settings.cache_clear()
+
     def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(status_code, text=body)
 
@@ -211,4 +249,6 @@ def test_eu_funding_adapter_maps_block_and_endpoint_errors_to_diagnostics(
 
     assert exc_info.value.code == expected_code
     assert exc_info.value.diagnostics["status_code"] == status_code
+    assert exc_info.value.diagnostics["method"] == "GET"
+    assert "requested_url" in exc_info.value.diagnostics
     assert "final_url" in exc_info.value.diagnostics

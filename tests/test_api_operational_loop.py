@@ -73,6 +73,10 @@ def test_operational_end_to_end_api_flow(client, db_session):
 
 
 def test_live_ingestion_api_flow(client, monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("EU_FUNDING_LIVE_ENABLED", "true")
+    get_settings.cache_clear()
     adapter = EUFundingTendersAdapter()
     monkeypatch.setattr(
         adapter,
@@ -104,13 +108,23 @@ def test_live_ingestion_api_flow(client, monkeypatch):
 
 
 def test_live_ingestion_api_returns_provider_diagnostics_on_source_block(client, monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.setenv("EU_FUNDING_LIVE_ENABLED", "true")
+    get_settings.cache_clear()
     adapter = EUFundingTendersAdapter()
 
     def _raise_block(**_kwargs):
         raise AdapterFetchError(
-            code="robots_blocked",
+            code="source_unauthorized",
             message="EU Funding API returned HTTP 403",
-            diagnostics={"category": "robots_blocked", "status_code": 403},
+            diagnostics={
+                "category": "source_unauthorized",
+                "status_code": 403,
+                "method": "GET",
+                "requested_url": "https://ec.europa.eu/info/funding-tenders/opportunities/data-api/topic/search?query=...",
+                "final_url": "https://ec.europa.eu/info/funding-tenders/opportunities/data-api/topic/search?query=...",
+            },
         )
 
     monkeypatch.setattr(adapter, "_fetch_live_payload", _raise_block)
@@ -123,5 +137,25 @@ def test_live_ingestion_api_returns_provider_diagnostics_on_source_block(client,
 
     assert response.status_code == 502
     detail = response.json()["detail"]
-    assert detail["error_code"] == "robots_blocked"
-    assert detail["diagnostics"]["category"] == "robots_blocked"
+    assert detail["error_code"] == "source_unauthorized"
+    assert detail["diagnostics"]["category"] == "source_unauthorized"
+    assert detail["diagnostics"]["method"] == "GET"
+    assert detail["diagnostics"]["requested_url"]
+    assert detail["diagnostics"]["final_url"]
+
+
+def test_live_ingestion_api_returns_source_unavailable_when_disabled(client, monkeypatch):
+    from app.core.config import get_settings
+
+    monkeypatch.delenv("EU_FUNDING_LIVE_ENABLED", raising=False)
+    get_settings.cache_clear()
+
+    response = client.post(
+        "/operations/jobs/ingestion/live",
+        json={"programmes": ["horizon"], "limit": 10, "run_matching_after": False},
+    )
+
+    assert response.status_code == 502
+    detail = response.json()["detail"]
+    assert detail["error_code"] == "source_unavailable"
+    assert detail["diagnostics"]["category"] == "source_unavailable"

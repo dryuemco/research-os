@@ -40,6 +40,18 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
         include_closed: bool = False,
     ) -> list[SourceAdapterRecord]:
         settings = get_settings()
+        if not settings.eu_funding_live_enabled:
+            raise AdapterFetchError(
+                code="source_unavailable",
+                message="EU Funding live ingestion is disabled by configuration",
+                diagnostics={
+                    "category": "source_unavailable",
+                    "method": "GET",
+                    "requested_url": self._canonicalize_url(settings.eu_funding_api_url),
+                    "final_url": self._canonicalize_url(settings.eu_funding_api_url),
+                    "status_code": None,
+                },
+            )
         records = self._fetch_live_payload(
             url=self._canonicalize_url(settings.eu_funding_api_url),
             timeout_seconds=settings.eu_funding_timeout_seconds,
@@ -77,7 +89,12 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
             "size": max(1, min(limit, 100)),
             "sort": "deadlineDate asc",
         }
-        headers = {"accept": "application/json"}
+        headers = {
+            "accept": "application/json",
+            "user-agent": "research-os-ingestion/1.0 (+https://ec.europa.eu/info/funding-tenders)",
+            "referer": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/",
+            "origin": "https://ec.europa.eu",
+        }
 
         client_args: dict = {"timeout": timeout_seconds, "follow_redirects": True}
         if self._transport is not None:
@@ -97,6 +114,8 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
                         "category": "network_error",
                         "method": "GET",
                         "requested_url": str(exc.request.url) if exc.request else url,
+                        "final_url": str(exc.request.url) if exc.request else url,
+                        "status_code": None,
                     },
                 ) from exc
 
@@ -124,12 +143,10 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
         status_code = response.status_code
 
         if status_code in {401, 403}:
+            code = "source_unauthorized"
+            category = "source_unauthorized"
             if "robots" in body_preview:
-                code = "robots_blocked"
-                category = "robots_blocked"
-            else:
-                code = "unauthorized"
-                category = "unauthorized"
+                category = "source_blocked"
         elif status_code in {301, 302, 307, 308, 404, 405, 410}:
             code = "endpoint_changed"
             category = "endpoint_changed"
@@ -241,9 +258,10 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
     def healthcheck(self) -> dict:
         settings = get_settings()
         return {
-            "status": "ok",
+            "status": "ok" if settings.eu_funding_live_enabled else "degraded",
             "source_name": self.source_name,
             "api_url": settings.eu_funding_api_url,
+            "live_enabled": settings.eu_funding_live_enabled,
         }
 
     def _as_text(self, value) -> str:
