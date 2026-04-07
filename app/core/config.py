@@ -64,6 +64,7 @@ class Settings(BaseSettings):
         alias="EU_FUNDING_API_URL",
     )
     eu_funding_timeout_seconds: int = Field(default=20, alias="EU_FUNDING_TIMEOUT_SECONDS")
+    eu_funding_live_enabled: bool = Field(default=False, alias="EU_FUNDING_LIVE_ENABLED")
     allowed_origins: str = Field(default="", alias="ALLOWED_ORIGINS")
     github_pages_url: str | None = Field(
         default="https://dryuemco.github.io",

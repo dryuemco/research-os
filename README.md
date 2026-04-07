@@ -194,6 +194,7 @@ Use this when the backend is healthy but mostly empty and you need dashboard-pop
 
 ### 4) Live official-source ingestion (Funding & Tenders Portal)
 - Canonical live source adapter: `eu_funding_tenders` (EU Funding & Tenders Portal).
+- Safety default: live ingestion is disabled unless `EU_FUNDING_LIVE_ENABLED=true`.
 - Official source strategy:
   - Horizon Europe and Erasmus+ calls are fetched from the EU Funding & Tenders canonical opportunity feed.
   - Erasmus+ programme pages remain supplementary context, while call discovery remains anchored to Funding & Tenders.

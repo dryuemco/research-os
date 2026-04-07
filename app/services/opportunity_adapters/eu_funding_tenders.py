@@ -40,6 +40,18 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
         include_closed: bool = False,
     ) -> list[SourceAdapterRecord]:
         settings = get_settings()
+        if not settings.eu_funding_live_enabled:
+            raise AdapterFetchError(
+                code="source_unavailable",
+                message="EU Funding live ingestion is disabled by configuration",
+                diagnostics={
+                    "category": "source_unavailable",
+                    "method": "GET",
+                    "requested_url": self._canonicalize_url(settings.eu_funding_api_url),
+                    "final_url": self._canonicalize_url(settings.eu_funding_api_url),
+                    "status_code": None,
+                },
+            )
         records = self._fetch_live_payload(
             url=self._canonicalize_url(settings.eu_funding_api_url),
             timeout_seconds=settings.eu_funding_timeout_seconds,
@@ -246,9 +258,10 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
     def healthcheck(self) -> dict:
         settings = get_settings()
         return {
-            "status": "ok",
+            "status": "ok" if settings.eu_funding_live_enabled else "degraded",
             "source_name": self.source_name,
             "api_url": settings.eu_funding_api_url,
+            "live_enabled": settings.eu_funding_live_enabled,
         }
 
     def _as_text(self, value) -> str:
