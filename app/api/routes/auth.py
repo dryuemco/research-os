@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -17,7 +18,17 @@ def login(
     request: LoginRequest,
     db: Annotated[Session, Depends(get_db_session)],
 ) -> LoginResponse:
-    user = AuthService(db).authenticate(username=request.username, password=request.password)
+    try:
+        user = AuthService(db).authenticate(username=request.username, password=request.password)
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "error_code": "auth_store_unavailable",
+                "message": str(exc),
+                "remediation": "Apply database migrations: alembic upgrade head",
+            },
+        ) from exc
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
