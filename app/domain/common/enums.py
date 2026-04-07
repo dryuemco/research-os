@@ -169,7 +169,15 @@ class UserRole(StrEnum):
     GRANT_WRITER = "grant_writer"
     REVIEWER = "reviewer"
     TECHNICAL_LEAD = "technical_lead"
+    EDITOR = "editor"
+    VIEWER = "viewer"
     ADMIN = "admin"
+
+
+class TargetCallStatus(StrEnum):
+    DRAFT = "draft"
+    ACTIVE = "active"
+    ARCHIVED = "archived"
 
 
 class Permission(StrEnum):
