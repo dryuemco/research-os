@@ -19,6 +19,7 @@ from app.schemas.opportunity import OpportunityIngestRequest
 from app.services.audit_service import AuditService
 from app.services.matching_service import MatchingService
 from app.services.notification_service import NotificationService
+from app.services.opportunity_adapters.base import AdapterFetchError
 from app.services.opportunity_ingestion_service import IngestionOutcome, OpportunityIngestionService
 from app.services.source_registry_service import SourceRegistryService
 
@@ -215,7 +216,14 @@ class OperationalLoopService:
         except Exception as exc:
             run.status = OperationalJobStatus.FAILED
             run.finished_at = datetime.now(UTC)
-            run.error_summary = {"message": str(exc)}
+            if isinstance(exc, AdapterFetchError):
+                run.error_summary = {
+                    "error_code": exc.code,
+                    "message": str(exc),
+                    "diagnostics": exc.diagnostics,
+                }
+            else:
+                run.error_summary = {"message": str(exc)}
             run.result_summary = {
                 "total_records": 0,
                 "created_count": 0,

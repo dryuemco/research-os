@@ -108,9 +108,15 @@ def test_live_ingestion_api_returns_provider_diagnostics_on_source_block(client,
 
     def _raise_block(**_kwargs):
         raise AdapterFetchError(
-            code="robots_blocked",
+            code="source_unauthorized",
             message="EU Funding API returned HTTP 403",
-            diagnostics={"category": "robots_blocked", "status_code": 403},
+            diagnostics={
+                "category": "source_unauthorized",
+                "status_code": 403,
+                "method": "GET",
+                "requested_url": "https://ec.europa.eu/info/funding-tenders/opportunities/data-api/topic/search?query=...",
+                "final_url": "https://ec.europa.eu/info/funding-tenders/opportunities/data-api/topic/search?query=...",
+            },
         )
 
     monkeypatch.setattr(adapter, "_fetch_live_payload", _raise_block)
@@ -123,5 +129,8 @@ def test_live_ingestion_api_returns_provider_diagnostics_on_source_block(client,
 
     assert response.status_code == 502
     detail = response.json()["detail"]
-    assert detail["error_code"] == "robots_blocked"
-    assert detail["diagnostics"]["category"] == "robots_blocked"
+    assert detail["error_code"] == "source_unauthorized"
+    assert detail["diagnostics"]["category"] == "source_unauthorized"
+    assert detail["diagnostics"]["method"] == "GET"
+    assert detail["diagnostics"]["requested_url"]
+    assert detail["diagnostics"]["final_url"]
