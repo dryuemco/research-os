@@ -1,10 +1,22 @@
-from sqlalchemy import Boolean, Enum, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from datetime import datetime
+
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
 from app.db.base import Base
-from app.domain.common.enums import OpportunityState
+from app.domain.common.enums import OpportunityState, TargetCallStatus
 from app.domain.common.mixins import TimestampMixin, UUIDPrimaryKeyMixin
 
 JSONType = JSON().with_variant(JSONB, "postgresql")
@@ -85,3 +97,26 @@ class MatchResult(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     recommendation: Mapped[str] = mapped_column(String(64), default="reject")
     recommended_role: Mapped[str | None] = mapped_column(String(64), nullable=True)
     red_flags: Mapped[list[str]] = mapped_column(JSONType)
+
+
+class TargetCall(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "target_calls"
+
+    title: Mapped[str] = mapped_column(String(512), nullable=False)
+    programme: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    call_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    call_identifier: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    deadline_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    raw_call_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[TargetCallStatus] = mapped_column(
+        Enum(TargetCallStatus),
+        default=TargetCallStatus.DRAFT,
+        nullable=False,
+        index=True,
+    )
+    created_by_user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )

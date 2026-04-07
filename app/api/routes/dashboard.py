@@ -44,6 +44,7 @@ def _empty_summary_payload() -> dict:
         "matching_runs": 0,
         "notifications": 0,
         "partner_profiles": 0,
+        "target_calls": 0,
         "_status": "degraded",
     }
 

@@ -9,6 +9,7 @@ This repository contains a production-credible backend foundation for a Research
 - project decomposition and coding-handoff planning foundation
 
 ## API endpoints in current slice
+- `POST /auth/login`
 - `GET /health`
 - `POST /opportunities/ingest/dev`
 - `POST /opportunities/ingest/dev/fixture`
@@ -81,6 +82,11 @@ This repository contains a production-credible backend foundation for a Research
 - `GET /intelligence/partners`
 - `POST /intelligence/partners/fit`
 - `GET /intelligence/proposal-quality/{proposal_id}`
+- `POST /target-calls`
+- `GET /target-calls`
+- `GET /target-calls/{id}`
+- `PATCH /target-calls/{id}`
+- `DELETE /target-calls/{id}`
 
 ## Repository layout
 - `app/api` - API routes and router wiring
@@ -160,10 +166,30 @@ This repository contains a production-credible backend foundation for a Research
 
 
 ## Pilot auth and hardening notes
+- Phase 1 auth supports username/password login at `POST /auth/login`, returning a bearer token for protected routes.
+- Roles currently supported: `admin`, `editor`, `viewer` (plus existing internal roles used by legacy pilot flows).
+- `target-calls` endpoints are admin-only for Phase 1 and intended for manual target call management.
 - Protected mutating/sensitive routes require `X-Internal-Api-Key` and `X-User-Id` headers.
 - Role-based permission guards are enforced for export approval, runtime control, memory block mutation, and opportunity approval actions.
 - Retrieval backend and artifact storage are pluggable via `RETRIEVAL_BACKEND` and `ARTIFACT_STORAGE_BACKEND` settings.
 - Export download requires `EXPORT_DOWNLOAD` permission; use `/memory/exports/artifacts/{artifact_id}/download-token` for short-lived tokenized delivery.
+
+### Seeded admin users (Phase 1)
+- Seeded admin usernames: `admin1`, `admin2`.
+- Passwords are sourced from environment variables:
+  - `SEED_ADMIN1_PASSWORD`
+  - `SEED_ADMIN2_PASSWORD`
+- Token signing and TTL settings:
+  - `AUTH_TOKEN_SECRET`
+  - `AUTH_TOKEN_TTL_MINUTES`
+- In Render, set all four values explicitly before rollout. Locally, defaults exist for development/test bootstrapping.
+
+### Swagger login and target-call flow (Phase 1)
+1. Call `POST /auth/login` with a seeded username and password.
+2. Copy `access_token` from the response.
+3. In Swagger, click **Authorize** and set `Authorization: Bearer <token>`.
+4. Call `POST /target-calls` with required `title`, `programme`, and either `call_url` or `raw_call_text`.
+5. Use `GET /target-calls` and `PATCH /target-calls/{id}` to verify/update manually curated calls.
 
 ## Pilot deployment notes (export delivery)
 - Ensure `ARTIFACT_STORAGE_ROOT` exists and is writable by API + worker containers.

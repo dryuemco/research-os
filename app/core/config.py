@@ -38,6 +38,19 @@ class Settings(BaseSettings):
     )
 
     internal_api_key: str | None = Field(default="dev-internal-key", alias="INTERNAL_API_KEY")
+    auth_token_secret: str = Field(
+        default="dev-auth-token-secret-change-me",
+        alias="AUTH_TOKEN_SECRET",
+    )
+    auth_token_ttl_minutes: int = Field(default=60, alias="AUTH_TOKEN_TTL_MINUTES")
+    seed_admin1_password: str = Field(
+        default="dev-admin1-placeholder-change-me",
+        alias="SEED_ADMIN1_PASSWORD",
+    )
+    seed_admin2_password: str = Field(
+        default="dev-admin2-placeholder-change-me",
+        alias="SEED_ADMIN2_PASSWORD",
+    )
     retrieval_backend: str = Field(default="lexical", alias="RETRIEVAL_BACKEND")
     retrieval_default_mode: str = Field(default="hybrid", alias="RETRIEVAL_DEFAULT_MODE")
     retrieval_lexical_weight: float = Field(default=0.6, alias="RETRIEVAL_LEXICAL_WEIGHT")
