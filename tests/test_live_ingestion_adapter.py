@@ -192,8 +192,8 @@ def test_eu_funding_adapter_follows_redirect_for_legacy_url():
 @pytest.mark.parametrize(
     ("status_code", "body", "expected_code"),
     [
-        (403, "blocked by robots.txt", "robots_blocked"),
-        (401, "access denied", "unauthorized"),
+        (403, "blocked by robots.txt", "source_unauthorized"),
+        (401, "access denied", "source_unauthorized"),
         (405, "Method Not Allowed", "endpoint_changed"),
         (500, "upstream failure", "source_blocked"),
     ],
@@ -211,4 +211,6 @@ def test_eu_funding_adapter_maps_block_and_endpoint_errors_to_diagnostics(
 
     assert exc_info.value.code == expected_code
     assert exc_info.value.diagnostics["status_code"] == status_code
+    assert exc_info.value.diagnostics["method"] == "GET"
+    assert "requested_url" in exc_info.value.diagnostics
     assert "final_url" in exc_info.value.diagnostics

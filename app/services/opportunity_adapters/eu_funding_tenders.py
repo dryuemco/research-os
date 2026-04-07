@@ -77,7 +77,12 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
             "size": max(1, min(limit, 100)),
             "sort": "deadlineDate asc",
         }
-        headers = {"accept": "application/json"}
+        headers = {
+            "accept": "application/json",
+            "user-agent": "research-os-ingestion/1.0 (+https://ec.europa.eu/info/funding-tenders)",
+            "referer": "https://ec.europa.eu/info/funding-tenders/opportunities/portal/",
+            "origin": "https://ec.europa.eu",
+        }
 
         client_args: dict = {"timeout": timeout_seconds, "follow_redirects": True}
         if self._transport is not None:
@@ -97,6 +102,8 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
                         "category": "network_error",
                         "method": "GET",
                         "requested_url": str(exc.request.url) if exc.request else url,
+                        "final_url": str(exc.request.url) if exc.request else url,
+                        "status_code": None,
                     },
                 ) from exc
 
@@ -124,12 +131,10 @@ class EUFundingTendersAdapter(OpportunitySourceAdapter):
         status_code = response.status_code
 
         if status_code in {401, 403}:
+            code = "source_unauthorized"
+            category = "source_unauthorized"
             if "robots" in body_preview:
-                code = "robots_blocked"
-                category = "robots_blocked"
-            else:
-                code = "unauthorized"
-                category = "unauthorized"
+                category = "source_blocked"
         elif status_code in {301, 302, 307, 308, 404, 405, 410}:
             code = "endpoint_changed"
             category = "endpoint_changed"
