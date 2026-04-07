@@ -37,6 +37,13 @@ def _has_column(table_name: str, column_name: str) -> bool:
     return column_name in columns
 
 
+def _has_index(table_name: str, index_name: str) -> bool:
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    indexes = {idx["name"] for idx in inspector.get_indexes(table_name)}
+    return index_name in indexes
+
+
 def _hash_password(password: str) -> str:
     iterations = 390000
     salt = secrets.token_bytes(16)
@@ -69,7 +76,8 @@ def upgrade() -> None:
 
     op.alter_column("users", "username", existing_type=sa.String(length=255), nullable=False)
     op.alter_column("users", "password_hash", existing_type=sa.Text(), nullable=False)
-    op.create_index(op.f("ix_users_username"), "users", ["username"], unique=True)
+    if not _has_index("users", op.f("ix_users_username")):
+        op.create_index(op.f("ix_users_username"), "users", ["username"], unique=True)
 
     if not _has_table("target_calls"):
         op.create_table(
@@ -99,14 +107,22 @@ def upgrade() -> None:
             sa.ForeignKeyConstraint(["created_by_user_id"], ["users.id"], ondelete="RESTRICT"),
             sa.PrimaryKeyConstraint("id"),
         )
-        op.create_index(op.f("ix_target_calls_programme"), "target_calls", ["programme"], unique=False)
-        op.create_index(op.f("ix_target_calls_status"), "target_calls", ["status"], unique=False)
-        op.create_index(
-            op.f("ix_target_calls_created_by_user_id"),
-            "target_calls",
-            ["created_by_user_id"],
-            unique=False,
-        )
+        if not _has_index("target_calls", op.f("ix_target_calls_programme")):
+            op.create_index(
+                op.f("ix_target_calls_programme"),
+                "target_calls",
+                ["programme"],
+                unique=False,
+            )
+        if not _has_index("target_calls", op.f("ix_target_calls_status")):
+            op.create_index(op.f("ix_target_calls_status"), "target_calls", ["status"], unique=False)
+        if not _has_index("target_calls", op.f("ix_target_calls_created_by_user_id")):
+            op.create_index(
+                op.f("ix_target_calls_created_by_user_id"),
+                "target_calls",
+                ["created_by_user_id"],
+                unique=False,
+            )
 
     admin1_password = os.getenv("SEED_ADMIN1_PASSWORD", "dev-admin1-placeholder-change-me")
     admin2_password = os.getenv("SEED_ADMIN2_PASSWORD", "dev-admin2-placeholder-change-me")
@@ -127,9 +143,9 @@ def upgrade() -> None:
     )
 
     bind = op.get_bind()
-    for username, full_name, password in (
-        ("admin1", "Seeded Admin 1", admin1_password),
-        ("admin2", "Seeded Admin 2", admin2_password),
+    for username, full_name, password, email in (
+        ("admin1", "Seeded Admin 1", admin1_password, "admin1@local.invalid"),
+        ("admin2", "Seeded Admin 2", admin2_password, "admin2@local.invalid"),
     ):
         exists = bind.execute(
             sa.text("SELECT id FROM users WHERE username = :username"), {"username": username}
@@ -144,7 +160,7 @@ def upgrade() -> None:
                     "username": username,
                     "password_hash": _hash_password(password),
                     "full_name": full_name,
-                    "email": None,
+                    "email": email,
                     "display_name": full_name,
                     "role": "admin",
                     "is_active": True,
