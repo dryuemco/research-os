@@ -8,7 +8,7 @@ from app.domain.execution_orchestrator.models import ExecutionPlan
 from app.domain.execution_orchestrator.runtime_models import ExecutionRun
 from app.domain.institutional_memory.models import ExportPackage, ReusableEvidenceBlock
 from app.domain.operations.models import MatchingRun, Notification, OperationalJobRun
-from app.domain.opportunity_discovery.models import MatchResult, Opportunity
+from app.domain.opportunity_discovery.models import MatchResult, Opportunity, TargetCall
 from app.domain.partner_intelligence.models import PartnerProfile
 from app.domain.proposal_factory.models import Proposal
 
@@ -36,6 +36,7 @@ class DashboardService:
             "partner_profiles": (
                 self.db.scalar(select(func.count()).select_from(PartnerProfile)) or 0
             ),
+            "target_calls": self.db.scalar(select(func.count()).select_from(TargetCall)) or 0,
         }
 
     def audit_timeline(self, *, limit: int = 50, offset: int = 0) -> list[AuditEvent]:

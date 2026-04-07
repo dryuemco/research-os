@@ -6,10 +6,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.core.config import get_settings
 from app.db import models  # noqa: F401
 from app.db.base import Base
 from app.db.session import get_db_session
 from app.main import app
+from app.services.auth_seed_service import AuthSeedService
 
 
 @pytest.fixture()
@@ -24,6 +26,8 @@ def db_session() -> Generator[Session, None, None]:
     Base.metadata.create_all(engine)
     session = testing_session_local()
     try:
+        AuthSeedService(session, get_settings()).ensure_seed_admin_users()
+        session.commit()
         yield session
     finally:
         session.close()
